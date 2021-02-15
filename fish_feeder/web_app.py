@@ -1,14 +1,24 @@
 from fastapi import FastAPI, Request
+from functools import lru_cache
+
 from fastapi.params import Depends
 from fastapi.responses import RedirectResponse
 from fastapi.templating import Jinja2Templates
 import uvicorn
 
-import api
+import api as api_
 from settings import Settings, get_settings
 
 app = FastAPI()
 templates = Jinja2Templates(directory="templates/")
+
+
+@lru_cache
+def get_api(settings: Settings = Depends(get_settings)):
+    if settings.simulate:
+        return api_.SimulatedAPI()
+    else:
+        return api_.DeviceAPI()
 
 
 @app.get("/")
@@ -19,10 +29,7 @@ async def read_root(request: Request):
 
 
 @app.get("/feed")
-async def feed_fish_redirect(
-    request: Request, settings: Settings = Depends(get_settings)
-):
-    print(f"Simulate: {settings.simulate}")
+async def feed_fish_redirect(api: api_.API = Depends(get_api)):
     api.feed_fish()
     return RedirectResponse("/")
 

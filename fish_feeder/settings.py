@@ -9,6 +9,9 @@ class Settings(BaseSettings):
     class Config:
         env_file = ".env"
 
+    def __hash__(self):
+        return hash(self.simulate)
+
 
 @lru_cache()
 def get_settings() -> Settings:
