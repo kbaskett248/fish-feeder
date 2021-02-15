@@ -31,7 +31,7 @@ async def feed_fish_redirect(api: api_.API = Depends(get_api)):
 
 
 @app.post("/api/feed")
-async def feed_fish():
+async def feed_fish(api: api_.API = Depends(get_api)):
     api.feed_fish()
 
 
