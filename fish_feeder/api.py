@@ -47,7 +47,7 @@ class DeviceAPI(API):
         self.background_task(self.device.pulse_led)
 
 
-@lru_cache
+@lru_cache()
 def get_api(
     simulate: bool = False,
     bg: Backgroundable = None,
