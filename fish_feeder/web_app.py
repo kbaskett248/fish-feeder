@@ -1,10 +1,10 @@
-from fastapi import FastAPI, Request
 from functools import lru_cache
 
+import uvicorn
+from fastapi import BackgroundTasks, FastAPI, Request
 from fastapi.params import Depends
 from fastapi.responses import RedirectResponse
 from fastapi.templating import Jinja2Templates
-import uvicorn
 
 import api as api_
 from settings import Settings, get_settings
@@ -13,8 +13,10 @@ app = FastAPI()
 templates = Jinja2Templates(directory="templates/")
 
 
-def get_api(settings: Settings = Depends(get_settings)) -> api_.API:
-    return api_.get_api(settings.simulate, settings)
+def get_api(
+    bg: BackgroundTasks, settings: Settings = Depends(get_settings)
+) -> api_.API:
+    return api_.get_api(settings.simulate, bg, settings)
 
 
 @app.get("/")
