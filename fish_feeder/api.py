@@ -4,7 +4,7 @@ from typing import Any, Callable, Optional
 
 from pydantic import BaseModel
 
-from device import Device, PinSpec
+from .device import Device, PinSpec
 
 
 class Backgroundable(BaseModel):

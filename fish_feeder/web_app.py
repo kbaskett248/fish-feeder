@@ -6,8 +6,8 @@ from fastapi.params import Depends
 from fastapi.responses import RedirectResponse
 from fastapi.templating import Jinja2Templates
 
-import api as api_
-from settings import Settings, get_settings
+from . import api as api_
+from .settings import Settings, get_settings
 
 app = FastAPI()
 templates = Jinja2Templates(directory="templates/")
