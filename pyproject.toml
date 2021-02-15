@@ -10,6 +10,7 @@ fastapi = "^0.63.0"
 Jinja2 = "^2.11.3"
 uvicorn = "^0.13.3"
 pydantic = {extras = ["dotenv"], version = "^1.7.3"}
+gpiozero = "^1.5.1"
 
 [tool.poetry.dev-dependencies]
 pytest = "^5.2"
