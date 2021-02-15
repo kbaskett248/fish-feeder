@@ -12,11 +12,8 @@ app = FastAPI()
 templates = Jinja2Templates(directory="templates/")
 
 
-def get_api(
-    bg: BackgroundTasks, settings: Settings = Depends(get_settings)
-) -> api_.API:
-    print(bg)
-    return api_.get_api(settings.simulate, bg, settings)
+def get_api(settings: Settings = Depends(get_settings)) -> api_.API:
+    return api_.get_api(settings.simulate, settings)
 
 
 @app.get("/")
@@ -27,11 +24,11 @@ async def read_root(request: Request):
 
 
 @app.get("/feed")
-async def feed_fish_redirect(api: api_.API = Depends(get_api)):
-    api.feed_fish()
+async def feed_fish_redirect(bg: BackgroundTasks, api: api_.API = Depends(get_api)):
+    api.feed_fish(bg)
     return RedirectResponse("/")
 
 
 @app.post("/api/feed")
-async def feed_fish(api: api_.API = Depends(get_api)):
-    api.feed_fish()
+async def feed_fish(bg: BackgroundTasks, api: api_.API = Depends(get_api)):
+    api.feed_fish(bg)

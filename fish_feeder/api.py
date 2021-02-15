@@ -12,27 +12,23 @@ class Backgroundable(BaseModel):
 
 
 class API(ABC):
-    background_tasks: Backgroundable
-
-    def __init__(self, bg: Optional[Backgroundable] = None) -> None:
-        super().__init__()
-        self.background_tasks = bg
-
-    def background_task(self, task: Callable, *args):
-        if self.background_tasks is None:
+    def background_task(
+        self, task: Callable, *args, bg: Optional[Backgroundable] = None
+    ):
+        if bg is None:
             task(*args)
         else:
-            self.background_tasks.add_task(task, *args)
+            bg.add_task(task, *args)
 
     @abstractmethod
-    def feed_fish(self):
+    def feed_fish(self, bg: Optional[Backgroundable] = None):
         print("I did the common stuff")
 
 
 class SimulatedAPI(API):
-    def feed_fish(self):
-        super().feed_fish()
-        self.background_task(print, "I simulated feeding the fish")
+    def feed_fish(self, bg: Optional[Backgroundable] = None):
+        super().feed_fish(bg)
+        self.background_task(print, "I simulated feeding the fish", bg=bg)
 
 
 class DeviceAPI(API):
@@ -42,18 +38,17 @@ class DeviceAPI(API):
         super().__init__(bg)
         self.device = Device(pin_spec)
 
-    def feed_fish(self):
+    def feed_fish(self, bg: Optional[Backgroundable] = None):
         super().feed_fish()
-        self.background_task(self.device.pulse_led)
+        self.background_task(self.device.pulse_led, bg=bg)
 
 
 @lru_cache()
 def get_api(
     simulate: bool = False,
-    bg: Backgroundable = None,
     pin_spec: Optional[PinSpec] = None,
 ) -> API:
     if simulate:
-        return SimulatedAPI(bg)
+        return SimulatedAPI()
     else:
-        return DeviceAPI(bg, pin_spec)
+        return DeviceAPI(pin_spec)
