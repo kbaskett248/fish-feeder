@@ -1,6 +1,5 @@
 from functools import lru_cache
 
-import uvicorn
 from fastapi import BackgroundTasks, FastAPI, Request
 from fastapi.params import Depends
 from fastapi.responses import RedirectResponse
@@ -16,6 +15,7 @@ templates = Jinja2Templates(directory="templates/")
 def get_api(
     bg: BackgroundTasks, settings: Settings = Depends(get_settings)
 ) -> api_.API:
+    print(bg)
     return api_.get_api(settings.simulate, bg, settings)
 
 
@@ -35,7 +35,3 @@ async def feed_fish_redirect(api: api_.API = Depends(get_api)):
 @app.post("/api/feed")
 async def feed_fish(api: api_.API = Depends(get_api)):
     api.feed_fish()
-
-
-if __name__ == "__main__":
-    uvicorn.run("web_app:app", reload=True)

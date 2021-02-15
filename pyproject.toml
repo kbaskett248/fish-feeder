@@ -16,6 +16,9 @@ gpiozero = "^1.5.1"
 pytest = "^5.2"
 black = {version = "^20.8b1", allow-prereleases = true}
 
+[tool.poetry.scripts]
+fish-feeder = "fish_feeder:run"
+
 [build-system]
 requires = ["poetry>=0.12"]
 build-backend = "poetry.masonry.api"
