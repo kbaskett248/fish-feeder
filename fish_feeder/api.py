@@ -34,8 +34,8 @@ class SimulatedAPI(API):
 class DeviceAPI(API):
     device: Device
 
-    def __init__(self, bg: Backgroundable, pin_spec: PinSpec) -> None:
-        super().__init__(bg)
+    def __init__(self, pin_spec: PinSpec) -> None:
+        super().__init__()
         self.device = Device(pin_spec)
 
     def feed_fish(self, bg: Optional[Backgroundable] = None):
