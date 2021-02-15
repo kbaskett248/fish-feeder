@@ -1,5 +1,8 @@
 from abc import ABC, abstractmethod
 from functools import lru_cache
+from typing import Optional
+
+from device import PinSpec, Device
 
 
 class API(ABC):
@@ -15,14 +18,20 @@ class SimulatedAPI(API):
 
 
 class DeviceAPI(API):
+    device: Device
+
+    def __init__(self, pin_spec: PinSpec) -> None:
+        super().__init__()
+        self.device = Device(pin_spec)
+
     def feed_fish(self):
         super().feed_fish()
-        print("I fed the fish")
+        self.device.pulse_led()
 
 
 @lru_cache
-def get_api(simulate: bool = False) -> API:
+def get_api(simulate: bool = False, pin_spec: Optional[PinSpec] = None) -> API:
     if simulate:
         return SimulatedAPI()
     else:
-        return DeviceAPI()
+        return DeviceAPI(pin_spec)

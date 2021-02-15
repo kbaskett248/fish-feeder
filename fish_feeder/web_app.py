@@ -14,7 +14,7 @@ templates = Jinja2Templates(directory="templates/")
 
 
 def get_api(settings: Settings = Depends(get_settings)) -> api_.API:
-    return api_.get_api(settings.simulate)
+    return api_.get_api(settings.simulate, settings)
 
 
 @app.get("/")
