@@ -13,12 +13,8 @@ app = FastAPI()
 templates = Jinja2Templates(directory="templates/")
 
 
-@lru_cache
-def get_api(settings: Settings = Depends(get_settings)):
-    if settings.simulate:
-        return api_.SimulatedAPI()
-    else:
-        return api_.DeviceAPI()
+def get_api(settings: Settings = Depends(get_settings)) -> api_.API:
+    return api_.get_api(settings.simulate)
 
 
 @app.get("/")

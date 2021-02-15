@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from functools import lru_cache
 
 
 class API(ABC):
@@ -17,3 +18,11 @@ class DeviceAPI(API):
     def feed_fish(self):
         super().feed_fish()
         print("I fed the fish")
+
+
+@lru_cache
+def get_api(simulate: bool = False) -> API:
+    if simulate:
+        return SimulatedAPI()
+    else:
+        return DeviceAPI()
