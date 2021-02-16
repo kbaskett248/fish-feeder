@@ -11,7 +11,10 @@
     <form method="get" action="{{ feed_url }}">
         <input type="submit" value="Feed the fish"></input>
     </form>
-    </form>
+
+    {% for message in log_items %}
+    <p>{{ message }}</p>
+    {% endfor %}
 </body>
 
 </html>
