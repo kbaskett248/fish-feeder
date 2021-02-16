@@ -1,9 +1,11 @@
 from abc import ABC, abstractmethod
+from datetime import datetime
 from functools import lru_cache, partial
 from typing import Any, Callable, Optional
 
 from pydantic import BaseModel
 
+from .abstract import Database
 from .device import Device, PinSpec
 
 
@@ -20,15 +22,20 @@ class API(ABC):
         else:
             bg.add_task(task, *args)
 
+    def feed_fish(self, db: Database, bg: Optional[Backgroundable] = None):
+        db.add_feed_requested(datetime.now())
+        print("Requesting feeding")
+        self.background_task(self._feed_fish, db, bg=bg)
+
     @abstractmethod
-    def feed_fish(self, bg: Optional[Backgroundable] = None):
-        print("I did the common stuff")
+    def _feed_fish(self, db: Database):
+        pass
 
 
 class SimulatedAPI(API):
-    def feed_fish(self, bg: Optional[Backgroundable] = None):
-        super().feed_fish(bg)
-        self.background_task(print, "I simulated feeding the fish", bg=bg)
+    def _feed_fish(self, db: Database):
+        print("I simulated feeding the fish")
+        db.add_feed_performed(datetime.now())
 
 
 class DeviceAPI(API):
@@ -38,9 +45,10 @@ class DeviceAPI(API):
         super().__init__()
         self.device = Device(pin_spec)
 
-    def feed_fish(self, bg: Optional[Backgroundable] = None):
-        super().feed_fish()
-        self.background_task(self.device.pulse_led, bg=bg)
+    def _feed_fish(self, db: Database):
+        self.device.pulse_led()
+        print("The fish was fed")
+        db.add_feed_performed(datetime.now())
 
 
 @lru_cache()
@@ -51,4 +59,5 @@ def get_api(
     if simulate:
         return SimulatedAPI()
     else:
+        assert pin_spec is not None
         return DeviceAPI(pin_spec)

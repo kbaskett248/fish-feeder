@@ -7,6 +7,8 @@ from sqlalchemy.engine.base import Engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, Session
 
+from . import abstract
+
 
 @lru_cache()
 def get_engine(db_url: str):
@@ -32,7 +34,7 @@ class FeedPerformed(Base):
     datetime = Column(DateTime, primary_key=True, index=True)
 
 
-class Database:
+class Database(abstract.Database):
     session: Session
 
     def __init__(self, session: Session) -> None:
@@ -54,7 +56,7 @@ class DatabaseFactory:
     engine: Engine
     session_maker: sessionmaker
 
-    def __init__(self, db_url: str) -> None:
+    def __init__(self, db_url: Path) -> None:
         self.db_url = db_url
         self.engine = get_engine(db_url)
         self.session_maker = sessionmaker(
@@ -67,5 +69,5 @@ class DatabaseFactory:
 
 
 @lru_cache()
-def get_database_factory(db_url: str) -> DatabaseFactory:
+def get_database_factory(db_url: Path) -> DatabaseFactory:
     return DatabaseFactory(db_url)

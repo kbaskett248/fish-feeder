@@ -36,7 +36,7 @@ async def feed_fish_redirect(
     api: api_.API = Depends(get_api),
     db: database.Database = Depends(get_db),
 ):
-    api.feed_fish(bg)
+    api.feed_fish(db, bg)
     return RedirectResponse("/")
 
 
@@ -46,4 +46,4 @@ async def feed_fish(
     api: api_.API = Depends(get_api),
     db: database.Database = Depends(get_db),
 ):
-    api.feed_fish(bg)
+    api.feed_fish(db, bg)
