@@ -20,10 +20,7 @@ def get_api(settings: Settings = Depends(get_settings)) -> api_.API:
 
 
 def get_db(settings: Settings = Depends(get_settings)):
-    return (
-        database.get_database(settings.db_url()),
-        database.get_session(settings.db_url()),
-    )
+    return database.get_database_factory(settings.db_url())()
 
 
 @app.get("/")
@@ -37,13 +34,16 @@ async def read_root(request: Request):
 async def feed_fish_redirect(
     bg: BackgroundTasks,
     api: api_.API = Depends(get_api),
-    db_: Tuple[database.Database, database.Session] = Depends(get_db),
+    db: database.Database = Depends(get_db),
 ):
-    db, session = db_
     api.feed_fish(bg)
     return RedirectResponse("/")
 
 
 @app.post("/api/feed")
-async def feed_fish(bg: BackgroundTasks, api: api_.API = Depends(get_api)):
+async def feed_fish(
+    bg: BackgroundTasks,
+    api: api_.API = Depends(get_api),
+    db: database.Database = Depends(get_db),
+):
     api.feed_fish(bg)

@@ -1,7 +1,9 @@
 from datetime import datetime as dt
 from functools import lru_cache
+from pathlib import Path
 
 from sqlalchemy import create_engine, Column, Integer, DateTime
+from sqlalchemy.engine.base import Engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, Session
 
@@ -13,12 +15,6 @@ def get_engine(db_url: str):
     else:
         connect_args = {}
     return create_engine(db_url, connect_args=connect_args)
-
-
-@lru_cache()
-def get_session(db_url: str) -> Session:
-    engine = get_engine(db_url)
-    return sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 
 Base = declarative_base()
@@ -37,20 +33,39 @@ class FeedPerformed(Base):
 
 
 class Database:
-    def __init__(self, db_url: str) -> None:
-        Base.metadata.create_all(bind=get_engine(db_url))
+    session: Session
 
-    def add_feed_requested(self, db: Session, dt_: dt):
+    def __init__(self, session: Session) -> None:
+        self.session = session
+
+    def add_feed_requested(self, dt_: dt):
         feed_requested = FeedRequested(datetime=dt_)
-        db.add(feed_requested)
-        db.commit()
+        self.session.add(feed_requested)
+        self.session.commit()
 
-    def add_feed_performed(self, db: Session, dt_: dt):
+    def add_feed_performed(self, dt_: dt):
         feed_performed = FeedPerformed(datetime=dt_)
-        db.add(feed_performed)
-        db.commit()
+        self.session.add(feed_performed)
+        self.session.commit()
+
+
+class DatabaseFactory:
+    db_url: Path
+    engine: Engine
+    session_maker: sessionmaker
+
+    def __init__(self, db_url: str) -> None:
+        self.db_url = db_url
+        self.engine = get_engine(db_url)
+        self.session_maker = sessionmaker(
+            autocommit=False, autoflush=False, bind=self.engine
+        )
+        Base.metadata.create_all(bind=self.engine)
+
+    def __call__(self) -> Database:
+        return Database(self.session_maker())
 
 
 @lru_cache()
-def get_database(db_url: str) -> Database:
-    return Database(db_url)
+def get_database_factory(db_url: str) -> DatabaseFactory:
+    return DatabaseFactory(db_url)
