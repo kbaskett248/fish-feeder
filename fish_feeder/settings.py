@@ -8,7 +8,7 @@ from pydantic import BaseSettings
 
 class Settings(BaseSettings):
     simulate: bool = False
-    db_path: Path = "./fish-feeder.db"
+    db_path: Path = Path("./fish-feeder.db")
 
     led_pin: Optional[int]
 
@@ -18,7 +18,7 @@ class Settings(BaseSettings):
     def __hash__(self):
         return hash((self.simulate, self.led_pin, self.db_path))
 
-    def db_url(self):
+    def db_url(self) -> str:
         return f"sqlite:///{self.db_path}"
 
 
