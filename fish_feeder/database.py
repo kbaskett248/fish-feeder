@@ -1,4 +1,5 @@
 from datetime import datetime as dt
+from datetime import timedelta
 from functools import lru_cache
 from pathlib import Path
 
@@ -49,6 +50,16 @@ class Database(abstract.Database):
         feed_performed = FeedPerformed(datetime=dt_)
         self.session.add(feed_performed)
         self.session.commit()
+
+    def list_feeds_performed(self):
+        date_limit = dt.now() - timedelta(days=14)
+        return [
+            item.datetime
+            for item in self.session.query(FeedPerformed)
+            .filter(FeedPerformed.datetime > date_limit)
+            .limit(20)
+            .all()
+        ]
 
 
 class DatabaseFactory:
