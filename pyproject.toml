@@ -12,6 +12,7 @@ uvicorn = "^0.13.3"
 pydantic = {extras = ["dotenv"], version = "^1.7.3"}
 gpiozero = "^1.5.1"
 SQLAlchemy = "^1.3.23"
+aiofiles = "^0.6.0"
 
 [tool.poetry.dev-dependencies]
 pytest = "^5.2"
