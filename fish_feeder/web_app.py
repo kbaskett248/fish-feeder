@@ -25,7 +25,7 @@ def get_db(settings: Settings = Depends(get_settings)):
 
 @app.get("/")
 async def read_root(request: Request, db: database.Database = Depends(get_db)):
-    log_items = [f"{dt}  Fish were fed" for dt in db.list_feeds_performed()]
+    log_items = [f"{feeding.time_fed}  Fish were fed" for feeding in db.list_feedings()]
     return templates.TemplateResponse(
         "status.html",
         context={"request": request, "feed_url": "/feed", "log_items": log_items},

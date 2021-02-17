@@ -23,19 +23,19 @@ class API(ABC):
             bg.add_task(task, *args)
 
     def feed_fish(self, db: Database, bg: Optional[Backgroundable] = None):
-        db.add_feed_requested(datetime.now())
+        feeding = db.add_feeding(datetime.now())
         print("Requesting feeding")
-        self.background_task(self._feed_fish, db, bg=bg)
+        self.background_task(self._feed_fish, db, feeding, bg=bg)
 
     @abstractmethod
-    def _feed_fish(self, db: Database):
-        pass
+    def _feed_fish(self, db: Database, feeding):
+        db.add_time_fed(feeding, datetime.now())
 
 
 class SimulatedAPI(API):
-    def _feed_fish(self, db: Database):
+    def _feed_fish(self, db: Database, feeding):
         print("I simulated feeding the fish")
-        db.add_feed_performed(datetime.now())
+        super()._feed_fish(db, feeding)
 
 
 class DeviceAPI(API):
@@ -45,10 +45,10 @@ class DeviceAPI(API):
         super().__init__()
         self.device = Device(pin_spec)
 
-    def _feed_fish(self, db: Database):
+    def _feed_fish(self, db: Database, feeding):
         self.device.pulse_led()
         print("The fish was fed")
-        db.add_feed_performed(datetime.now())
+        super()._feed_fish(db, feeding)
 
 
 @lru_cache()

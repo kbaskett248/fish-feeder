@@ -23,16 +23,12 @@ def get_engine(db_url: str):
 Base = declarative_base()
 
 
-class FeedRequested(Base):
-    __tablename__ = "feed_requested"
+class Feeding(Base):
+    __tablename__ = "feeding"
 
-    datetime = Column(DateTime, primary_key=True, index=True)
-
-
-class FeedPerformed(Base):
-    __tablename__ = "feed_performed"
-
-    datetime = Column(DateTime, primary_key=True, index=True)
+    id = Column(Integer, primary_key=True, index=True)
+    time_requested = Column(DateTime, nullable=False, index=True)
+    time_fed = Column(DateTime, index=True, nullable=True)
 
 
 class Database(abstract.Database):
@@ -41,25 +37,29 @@ class Database(abstract.Database):
     def __init__(self, session: Session) -> None:
         self.session = session
 
-    def add_feed_requested(self, dt_: dt):
-        feed_requested = FeedRequested(datetime=dt_)
-        self.session.add(feed_requested)
+    def add_feeding(self, requested: dt) -> Feeding:
+        feeding = Feeding(time_requested=requested)
+        self.session.add(feeding)
         self.session.commit()
+        self.session.refresh(feeding)
+        return feeding
 
-    def add_feed_performed(self, dt_: dt):
-        feed_performed = FeedPerformed(datetime=dt_)
-        self.session.add(feed_performed)
+    def add_time_fed(self, feeding: Feeding, fed: dt) -> Feeding:
+        feeding.time_fed = fed
+        self.session.add(feeding)
         self.session.commit()
+        self.session.refresh(feeding)
+        return feeding
 
-    def list_feeds_performed(self):
+    def list_feedings(self):
         date_limit = dt.now() - timedelta(days=14)
-        return [
-            item.datetime
-            for item in self.session.query(FeedPerformed)
-            .filter(FeedPerformed.datetime > date_limit)
+        return (
+            self.session.query(Feeding)
+            .filter(Feeding.time_requested > date_limit)
+            .order_by(Feeding.time_requested.desc())
             .limit(20)
             .all()
-        ]
+        )
 
 
 class DatabaseFactory:
