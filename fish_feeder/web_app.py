@@ -4,6 +4,7 @@ from typing import Tuple
 from fastapi import BackgroundTasks, FastAPI, Request
 from fastapi.params import Depends
 from fastapi.responses import RedirectResponse
+from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm.session import Session
 
@@ -12,6 +13,7 @@ from . import database
 from .settings import Settings, get_settings
 
 app = FastAPI()
+app.mount("/static", StaticFiles(directory="static"), name="static")
 templates = Jinja2Templates(directory="templates/")
 
 
