@@ -23,7 +23,7 @@ def get_engine(db_url: str):
 Base = declarative_base()
 
 
-class Feeding(Base):
+class Feeding(abstract.Feeding, Base):
     __tablename__ = "feeding"
 
     id = Column(Integer, primary_key=True, index=True)
@@ -44,7 +44,7 @@ class Database(abstract.Database):
         self.session.refresh(feeding)
         return feeding
 
-    def add_time_fed(self, feeding: Feeding, fed: dt) -> Feeding:
+    def add_time_fed(self, feeding: abstract.Feeding, fed: dt) -> abstract.Feeding:
         feeding.time_fed = fed
         self.session.add(feeding)
         self.session.commit()

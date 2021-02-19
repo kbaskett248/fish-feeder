@@ -34,3 +34,13 @@ h1 {
     padding-top: 2rem;
     padding-bottom: 2rem;
 }
+
+.log-section>table {
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.log-section>table>tbody>tr>td {
+    padding-left: 1rem;
+    padding-right: 1rem;
+}
