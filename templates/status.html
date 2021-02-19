@@ -14,9 +14,12 @@
             <input type="submit" value="Feed the fish"></input>
         </form>
 
-        {% for message in log_items %}
-        <p>{{ message }}</p>
-        {% endfor %}
+        <div class="log-section">
+            <h2>Previous Feedings</h2>
+            {% for message in log_items %}
+            <p>{{ message }}</p>
+            {% endfor %}
+        </div>
     </div>
 </body>
 
