@@ -1,3 +1,30 @@
+html, body {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
 body {
-  background-image: url("/static/images/bg.jpg");
+    background-image: url("/static/images/bg.jpg");
+    font-family: Arial, Helvetica, sans-serif;
+    margin: 0px;
+    padding: 24px 24px 0px 24px;
+}
+
+h1 {
+    text-align: center;
+    font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+}
+
+.page-content {
+    width: 90%;
+    max-width: 1024px;
+    color: whitesmoke;
+    flex-grow: 1;
+    background-color: rgba(78, 78, 78, 0.4);
+    padding: 24px 24px 24px 24px;
+    margin: 0px;
+    margin-left: auto;
+    margin-right: auto;
+    text-align: center;
 }

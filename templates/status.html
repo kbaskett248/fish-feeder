@@ -8,14 +8,16 @@
 </head>
 
 <body>
-    <h1>Fish Feeder 5000</h1>
-    <form method="get" action="{{ feed_url }}">
-        <input type="submit" value="Feed the fish"></input>
-    </form>
+    <div class="page-content">
+        <h1>Fish Feeder 5000</h1>
+        <form method="get" action="{{ feed_url }}">
+            <input type="submit" value="Feed the fish"></input>
+        </form>
 
-    {% for message in log_items %}
-    <p>{{ message }}</p>
-    {% endfor %}
+        {% for message in log_items %}
+        <p>{{ message }}</p>
+        {% endfor %}
+    </div>
 </body>
 
 </html>
