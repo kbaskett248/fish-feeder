@@ -1,6 +1,6 @@
 from enum import Enum
 from time import sleep
-from typing import Tuple
+from typing import Iterable, Sequence, Tuple
 
 from gpiozero import LED, OutputDevice
 from pydantic import BaseModel
@@ -85,8 +85,13 @@ class DRV8825:
         return cls(dir_pin=24, step_pin=18, enable_pin=4, mode_pins=(21, 22, 27))
 
 
+PartialStep = Tuple[int, int, int, int]
+
+
 class MotorController:
-    sequence = (
+    """A stepper motor controller class."""
+
+    sequence: Iterable[PartialStep] = (
         (0, 0, 0, 1),
         (0, 0, 1, 1),
         (0, 0, 1, 0),
@@ -96,9 +101,35 @@ class MotorController:
         (1, 0, 0, 0),
         (1, 0, 0, 1),
     )
+    steps_per_revolution = 512
 
     def __init__(self, pin1: int, pin2: int, pin3: int, pin4: int) -> None:
         self.pins = [OutputDevice(pin) for pin in (pin1, pin2, pin3, pin4)]
+
+    def turn_angle(self, angle: float, step_delay: float = 0.005) -> None:
+
+        if angle == 0:
+            return
+        steps = round(abs(angle) / 360 * 512)
+        method = self.step_forward if angle > 0 else self.step_backward
+        for _ in range(steps):
+            method(step_delay)
+
+    def step_forward(self, time_delay: float = 0.005) -> None:
+        self._step(self.sequence, time_delay)
+
+    def step_backward(self, time_delay: float = 0.005) -> None:
+        self._step(reversed(self.sequence), time_delay)
+
+    def _step(self, sequence: Iterable[PartialStep], time_delay: float = 0.005) -> None:
+        for partial_step in sequence:
+            for command, pin in zip(partial_step, self.pins):
+                if command == 1:
+                    pin.on()
+                else:
+                    pin.off()
+
+            sleep(time_delay)
 
 
 class Device:
