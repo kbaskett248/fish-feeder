@@ -85,6 +85,22 @@ class DRV8825:
         return cls(dir_pin=24, step_pin=18, enable_pin=4, mode_pins=(21, 22, 27))
 
 
+class MotorController:
+    sequence = (
+        (0, 0, 0, 1),
+        (0, 0, 1, 1),
+        (0, 0, 1, 0),
+        (0, 1, 1, 0),
+        (0, 1, 0, 0),
+        (1, 1, 0, 0),
+        (1, 0, 0, 0),
+        (1, 0, 0, 1),
+    )
+
+    def __init__(self, pin1: int, pin2: int, pin3: int, pin4: int) -> None:
+        self.pins = [OutputDevice(pin) for pin in (pin1, pin2, pin3, pin4)]
+
+
 class Device:
     led: LED
     motor: DRV8825
