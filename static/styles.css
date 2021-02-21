@@ -6,6 +6,7 @@ html, body {
 
 body {
     background-image: url("/static/images/bg.jpg");
+    background-position: center;
     font-family: Arial, Helvetica, sans-serif;
     margin: 0px;
     padding: 24px 24px 0px 24px;
@@ -22,7 +23,9 @@ h1 {
     max-width: 1024px;
     color: whitesmoke;
     flex-grow: 1;
-    background-color: rgba(78, 78, 78, 0.4);
+    background-color: rgba(24, 24, 24, 0.6);
+    border-top-left-radius: 0.5rem;
+    border-top-right-radius: 0.5rem;
     padding: 24px 24px 24px 24px;
     margin: 0px;
     margin-left: auto;
