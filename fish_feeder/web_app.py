@@ -1,12 +1,11 @@
 from functools import lru_cache
 from typing import Tuple
 
-from fastapi import BackgroundTasks, FastAPI, Request
+from fastapi import BackgroundTasks, FastAPI, Form, Request
 from fastapi.params import Depends
 from fastapi.responses import RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
-from sqlalchemy.orm.session import Session
 
 from . import api as api_
 from . import database
@@ -45,6 +44,36 @@ async def feed_fish_redirect(
 ):
     api.feed_fish(db, bg)
     return RedirectResponse("/")
+
+
+@app.get("/settings")
+async def settings_get(
+    request: Request,
+    db: database.Database = Depends(get_db),
+):
+    return templates.TemplateResponse(
+        "settings.html",
+        context={
+            "request": request,
+            "feed_angle": db.get_feed_angle(),
+        },
+    )
+
+
+@app.post("/settings")
+async def settings_post(
+    request: Request,
+    db: database.Database = Depends(get_db),
+    feed_angle: float = Form(...),
+):
+    db.set_feed_angle(feed_angle)
+    return templates.TemplateResponse(
+        "settings.html",
+        context={
+            "request": request,
+            "feed_angle": db.get_feed_angle(),
+        },
+    )
 
 
 @app.post("/api/feed")

@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <form action="{{ url_for('settings_post') }}" method="post">
+    <label for="feed_angle">Feed angle</label>
+        <input type="number" name="feed_angle" value="{{ feed_angle }}">
+        <input type="submit" value="Save">
+    </form>
+{% endblock content %}
