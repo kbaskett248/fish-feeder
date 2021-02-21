@@ -47,6 +47,7 @@ class DeviceAPI(API):
 
     def _feed_fish(self, db: Database, feeding):
         self.device.pulse_led()
+        self.device.turn_motor(360)
         print("The fish was fed")
         super()._feed_fish(db, feeding)
 
