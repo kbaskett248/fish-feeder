@@ -25,12 +25,11 @@ def get_db(settings: Settings = Depends(get_settings)):
 
 
 @app.get("/")
-async def read_root(request: Request, db: database.Database = Depends(get_db)):
+async def status(request: Request, db: database.Database = Depends(get_db)):
     return templates.TemplateResponse(
         "status.html",
         context={
             "request": request,
-            "feed_url": "/feed",
             "log_items": db.list_feedings(),
         },
     )
@@ -38,12 +37,13 @@ async def read_root(request: Request, db: database.Database = Depends(get_db)):
 
 @app.get("/feed")
 async def feed_fish_redirect(
+    request: Request,
     bg: BackgroundTasks,
     api: api_.API = Depends(get_api),
     db: database.Database = Depends(get_db),
 ):
     api.feed_fish(db, bg)
-    return RedirectResponse("/")
+    return RedirectResponse(request.url_for("status"))
 
 
 @app.get("/settings")
