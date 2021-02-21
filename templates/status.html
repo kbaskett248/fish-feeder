@@ -1,37 +1,24 @@
-<!DOCTYPE html>
-<html lang="en">
+{% extends "base.html" %}
+{% block content %}
+    <form method="get" action="{{ feed_url }}">
+        <input type="submit" value="Feed the fish"></input>
+    </form>
 
-<head>
-    <meta charset="UTF-8">
-    <title>Fish Feeder 5000</title>
-    <link rel="stylesheet" href="/static/styles.css" />
-</head>
-
-<body>
-    <div class="page-content">
-        <h1>Fish Feeder 5000</h1>
-        <form method="get" action="{{ feed_url }}">
-            <input type="submit" value="Feed the fish"></input>
-        </form>
-
-        <div class="log-section">
-            <h2>Previous Feedings</h2>
-            <table>
-                <tr>
-                    <th>Date</th>
-                    <th>Time</th>
-                    <th>Message</th>
-                </tr>
-                {% for feeding in log_items %}
-                <tr>
-                    <td>{{feeding.date_display()}}</td>
-                    <td>{{feeding.time_display()}}</td>
-                    <td>{{feeding.message_display()}}</td>
-                </tr>
-                {% endfor %}
-            </table>
-        </div>
+    <div class="log-section">
+        <h2>Previous Feedings</h2>
+        <table>
+            <tr>
+                <th>Date</th>
+                <th>Time</th>
+                <th>Message</th>
+            </tr>
+            {% for feeding in log_items %}
+            <tr>
+                <td>{{feeding.date_display()}}</td>
+                <td>{{feeding.time_display()}}</td>
+                <td>{{feeding.message_display()}}</td>
+            </tr>
+            {% endfor %}
+        </table>
     </div>
-</body>
-
-</html>
+{% endblock content %}
