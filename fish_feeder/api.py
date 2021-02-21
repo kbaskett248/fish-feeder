@@ -34,7 +34,7 @@ class API(ABC):
 
 class SimulatedAPI(API):
     def _feed_fish(self, db: Database, feeding):
-        print("I simulated feeding the fish")
+        print(f"I simulated feeding the fish by rotating {db.get_feed_angle()}")
         super()._feed_fish(db, feeding)
 
 
@@ -47,7 +47,7 @@ class DeviceAPI(API):
 
     def _feed_fish(self, db: Database, feeding):
         self.device.pulse_led()
-        self.device.turn_motor(360)
+        self.device.turn_motor(db.get_feed_angle())
         print("The fish was fed")
         super()._feed_fish(db, feeding)
 
