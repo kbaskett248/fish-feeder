@@ -89,6 +89,17 @@ class DRV8825:
         return cls(dir_pin=24, step_pin=18, enable_pin=4, mode_pins=(21, 22, 27))
 
 
+class StepperMotorInUseException(Exception):
+    motor: "StepperMotor"
+
+    def __init__(self, motor: "StepperMotor") -> None:
+        super().__init__()
+        self.motor = motor
+
+    def __str__(self) -> str:
+        return "Stepper motor already in use"
+
+
 PartialStep = Tuple[int, int, int, int]
 
 
@@ -106,11 +117,17 @@ class StepperMotor:
         (1, 0, 0, 1),
     )
     steps_per_revolution = 512
+    turning: bool
 
     def __init__(self, pin1: int, pin2: int, pin3: int, pin4: int) -> None:
         self.pins = [OutputDevice(pin) for pin in (pin1, pin2, pin3, pin4)]
+        self.turning = False
 
     def turn_angle(self, angle: float, step_delay: float = 0.005) -> None:
+        if self.turning:
+            raise StepperMotorInUseException(self)
+
+        self.turning = True
 
         if angle == 0:
             return
@@ -118,6 +135,8 @@ class StepperMotor:
         method = self.step_clockwise if angle > 0 else self.step_counter_clockwise
         for _ in range(steps):
             method(step_delay)
+
+        self.turning = False
 
     def step_clockwise(self, time_delay: float = 0.005) -> None:
         self._step(self.sequence, time_delay)
