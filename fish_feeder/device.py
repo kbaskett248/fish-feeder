@@ -9,6 +9,10 @@ from pydantic.decorator import validate_arguments
 
 class PinSpec(BaseModel):
     led_pin: int
+    motor_pin_1: int
+    motor_pin_2: int
+    motor_pin_3: int
+    motor_pin_4: int
 
 
 class DRV8825:
@@ -88,7 +92,7 @@ class DRV8825:
 PartialStep = Tuple[int, int, int, int]
 
 
-class MotorController:
+class StepperMotor:
     """A stepper motor controller class."""
 
     sequence: Iterable[PartialStep] = (
@@ -134,11 +138,14 @@ class MotorController:
 
 class Device:
     led: LED
-    motor: DRV8825
+    motor: StepperMotor
 
     @validate_arguments
     def __init__(self, pins: PinSpec):
         self.led = LED(pins.led_pin)
+        self.motor = StepperMotor(
+            pins.motor_pin_1, pins.motor_pin_2, pins.motor_pin_3, pins.motor_pin_4
+        )
 
     def pulse_led(self):
         self.led.on()

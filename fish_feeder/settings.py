@@ -12,6 +12,11 @@ class Settings(BaseSettings):
 
     led_pin: Optional[int]
 
+    motor_pin_1: Optional[int]
+    motor_pin_2: Optional[int]
+    motor_pin_3: Optional[int]
+    motor_pin_4: Optional[int]
+
     class Config:
         env_file = ".env"
 
