@@ -19,6 +19,10 @@ class Feeding:
         return "Fish were fed" if self.time_fed else "Fish feeding requested"
 
 
+class Settings:
+    feed_angle: float
+
+
 class Database(ABC):
     @abstractmethod
     def add_feeding(self, requested: datetime) -> Feeding:
@@ -30,4 +34,12 @@ class Database(ABC):
 
     @abstractmethod
     def list_feedings(self) -> List[Feeding]:
+        pass
+
+    @abstractmethod
+    def get_feed_angle(self) -> float:
+        pass
+
+    @abstractmethod
+    def set_feed_angle(self, angle: float) -> None:
         pass
