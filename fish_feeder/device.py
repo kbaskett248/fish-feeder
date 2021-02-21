@@ -115,14 +115,14 @@ class StepperMotor:
         if angle == 0:
             return
         steps = round(abs(angle) / 360 * 512)
-        method = self.step_forward if angle > 0 else self.step_backward
+        method = self.step_clockwise if angle > 0 else self.step_counter_clockwise
         for _ in range(steps):
             method(step_delay)
 
-    def step_forward(self, time_delay: float = 0.005) -> None:
+    def step_clockwise(self, time_delay: float = 0.005) -> None:
         self._step(self.sequence, time_delay)
 
-    def step_backward(self, time_delay: float = 0.005) -> None:
+    def step_counter_clockwise(self, time_delay: float = 0.005) -> None:
         self._step(reversed(self.sequence), time_delay)
 
     def _step(self, sequence: Iterable[PartialStep], time_delay: float = 0.005) -> None:
