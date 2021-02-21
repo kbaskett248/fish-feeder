@@ -151,3 +151,6 @@ class Device:
         self.led.on()
         sleep(2.5)
         self.led.off()
+
+    def turn_motor(self, angle: float) -> None:
+        self.motor.turn_angle(angle)
