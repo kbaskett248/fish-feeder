@@ -3,8 +3,11 @@
 {% block content %}
     <h2>Settings</h2>
     <form action="{{ url_for('settings_post') }}" method="post">
-        <label for="feed_angle">Feed angle</label>
-        <input type="number" name="feed_angle" value="{{ feed_angle }}">
+        <div class="form-field">
+            <label for="feed_angle">Feed angle</label>
+            <p>The angle to rotate the feeder screw during a feeding.</p>
+            <input type="number" name="feed_angle" value="{{ feed_angle }}">
+        </div>
         <input type="submit" value="Save">
     </form>
 {% endblock content %}
