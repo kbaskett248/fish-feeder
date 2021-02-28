@@ -6,7 +6,7 @@
         {
             "label": "Start Server",
             "type": "shell",
-            "command": "poetry run fish-feeder",
+            "command": "poetry run fish-feeder --dev",
             "problemMatcher": []
         }
     ]
