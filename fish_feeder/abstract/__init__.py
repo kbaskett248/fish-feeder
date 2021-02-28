@@ -45,6 +45,12 @@ class Schedule:
         else:
             raise Exception("Unknown schedule type")
 
+    def __str__(self) -> str:
+        if self.schedule_type == ScheduleMode.DAILY:
+            return f"Daily at {self.time_}"
+        else:
+            return "Unsupported schedule type"
+
 
 class Database(ABC):
     @abstractmethod
