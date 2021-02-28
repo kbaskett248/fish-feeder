@@ -34,6 +34,10 @@ def get_scheduler() -> AsyncIOScheduler:
     return AsyncIOScheduler()
 
 
+def schedule_job_id(schedule: database.Schedule) -> str:
+    return str(hash(schedule))
+
+
 @app.on_event("startup")
 async def create_schedules():
     scheduler = get_scheduler()
@@ -56,15 +60,14 @@ async def add_scheduled_feeding(
     kwargs = {
         "trigger": "cron",
         "kwargs": {"db": db},
-        "id": repr(scheduled_feeding),
+        "id": schedule_job_id(scheduled_feeding),
         "name": "Scheduled Feeding",
         "misfire_grace_time": 3600,
         "coalesce": True,
         "max_instances": 1,
     }
     cron_args = scheduled_feeding.get_cron_args()
-    logger.debug("Cron_args: {}", cron_args)
-    kwargs.update(scheduled_feeding.get_cron_args())
+    kwargs.update(cron_args)
     job = scheduler.add_job(api.feed_fish, **kwargs)
     logger.info("Added scheduled feeding: {}", job)
 
@@ -95,13 +98,21 @@ async def feed_fish_redirect(
 async def settings_get(
     request: Request,
     db: database.Database = Depends(get_db),
+    scheduler: AsyncIOScheduler = Depends(get_scheduler),
 ):
+    schedules = [
+        {
+            "schedule": str(schedule),
+            "next_feeding": f"{scheduler.get_job(schedule_job_id(schedule)).next_run_time:%Y-%m-%d %H:%M}",
+        }
+        for schedule in db.list_schedules()
+    ]
     return templates.TemplateResponse(
         "settings.html",
         context={
             "request": request,
             "feed_angle": db.get_feed_angle(),
-            "schedules": db.list_schedules(),
+            "schedules": schedules,
         },
     )
 

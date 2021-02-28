@@ -51,6 +51,9 @@ class Schedule:
         else:
             return "Unsupported schedule type"
 
+    def __hash__(self) -> int:
+        return hash((self.schedule_type, self.time_))
+
 
 class Database(ABC):
     @abstractmethod
