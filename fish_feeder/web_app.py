@@ -34,7 +34,22 @@ def get_scheduler() -> AsyncIOScheduler:
 
 @app.on_event("startup")
 async def create_schedules():
-    get_scheduler().start()
+    scheduler = get_scheduler()
+    settings = get_settings()
+    api = get_api(settings)
+    db = get_db(settings)
+    scheduler.add_job(
+        logger.info,
+        trigger="cron",
+        minute="*/1",
+        args=("Running scheduled task",),
+        id="feeding",
+        name="Scheduled Feeding",
+        misfire_grace_time=3600,
+        coalesce=True,
+        max_instances=1,
+    )
+    scheduler.start()
     logger.info("Started scheduler")
 
 
