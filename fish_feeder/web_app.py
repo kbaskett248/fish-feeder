@@ -1,7 +1,5 @@
 from datetime import time
-from fish_feeder import abstract
 from functools import lru_cache
-from typing import Tuple
 
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from fastapi import BackgroundTasks, FastAPI, Form, Request, status
@@ -10,6 +8,8 @@ from fastapi.responses import RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from loguru import logger
+
+from fish_feeder import abstract
 
 from . import api as api_
 from . import database
