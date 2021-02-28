@@ -89,3 +89,7 @@ class Database(ABC):
     @abstractmethod
     def list_schedules(self) -> List[Schedule]:
         pass
+
+    @abstractmethod
+    def remove_schedule(self, schedule: Schedule) -> None:
+        pass

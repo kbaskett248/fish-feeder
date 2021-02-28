@@ -131,6 +131,10 @@ class Database(abstract.Database):
     def list_schedules(self) -> List[abstract.Schedule]:
         return self.session.query(Schedule).all()
 
+    def remove_schedule(self, schedule: abstract.Schedule) -> None:
+        self.session.delete(schedule)
+        self.session.commit()
+
 
 class DatabaseFactory:
     db_url: Path
