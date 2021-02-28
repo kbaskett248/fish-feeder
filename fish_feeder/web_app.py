@@ -39,10 +39,10 @@ async def create_schedules():
     api = get_api(settings)
     db = get_db(settings)
     scheduler.add_job(
-        logger.info,
+        api.feed_fish,
         trigger="cron",
         minute="*/1",
-        args=("Running scheduled task",),
+        kwargs={"db": db},
         id="feeding",
         name="Scheduled Feeding",
         misfire_grace_time=3600,
