@@ -3,6 +3,7 @@ from datetime import datetime
 from functools import lru_cache, partial
 from typing import Any, Callable, Optional
 
+from loguru import logger
 from pydantic import BaseModel
 
 from .abstract import Database
@@ -24,7 +25,7 @@ class API(ABC):
 
     def feed_fish(self, db: Database, bg: Optional[Backgroundable] = None):
         feeding = db.add_feeding(datetime.now())
-        print("Requesting feeding")
+        logger.info("Requesting feeding")
         self.background_task(self._feed_fish, db, feeding, bg=bg)
 
     @abstractmethod
@@ -34,7 +35,7 @@ class API(ABC):
 
 class SimulatedAPI(API):
     def _feed_fish(self, db: Database, feeding):
-        print(f"I simulated feeding the fish by rotating {db.get_feed_angle()}")
+        logger.info("I simulated feeding the fish by rotating {}", db.get_feed_angle())
         super()._feed_fish(db, feeding)
 
 
@@ -48,7 +49,7 @@ class DeviceAPI(API):
     def _feed_fish(self, db: Database, feeding):
         self.device.pulse_led()
         self.device.turn_motor(db.get_feed_angle())
-        print("The fish was fed")
+        logger.info("I fed the fish by rotating {}", db.get_feed_angle())
         super()._feed_fish(db, feeding)
 
 

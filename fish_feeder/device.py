@@ -3,6 +3,7 @@ from time import sleep
 from typing import Iterable, Sequence, Tuple
 
 from gpiozero import LED, OutputDevice
+from loguru import logger
 from pydantic import BaseModel
 from pydantic.decorator import validate_arguments
 
@@ -46,9 +47,9 @@ class DRV8825:
         self.enable_pin.on()
 
     def set_step_format(self, mode: "DRV8825.Mode", step_format: "DRV8825.StepFormat"):
-        print("Control mode:", mode)
+        logger.debug("Motor control mode: {}", mode)
         if mode == self.Mode.SOFTWARE:
-            print("Set pins")
+            logger.debug("Setting pins")
             for pin, state in zip(self.mode_pins, step_format.value):
                 if state == 1:
                     pin.on()
@@ -59,15 +60,15 @@ class DRV8825:
         self, direction: "DRV8825.Direction", steps: int, step_delay: float = 0.005
     ):
         if direction == self.Direction.FORWARD:
-            print("Forward: steps =", steps)
+            logger.debug("Forward: {} steps", steps)
             self.enable_pin.off()
             self.dir_pin.off()
         elif direction == self.Direction.REVERSE:
-            print("Reverse: steps =", steps)
+            logger.debug("Reverse: {} steps", steps)
             self.enable_pin.off()
             self.dir_pin.on()
         else:
-            print("Invalid direction:", direction)
+            logger.warning("Invalid direction: {}", direction)
             self.enable_pin.on()
             return
 
@@ -106,7 +107,7 @@ PartialStep = Tuple[int, int, int, int]
 class StepperMotor:
     """A stepper motor controller class."""
 
-    sequence: Iterable[PartialStep] = (
+    sequence: Sequence[PartialStep] = (
         (0, 0, 0, 1),
         (0, 0, 1, 1),
         (0, 0, 1, 0),
@@ -130,8 +131,10 @@ class StepperMotor:
         self.turning = True
 
         if angle == 0:
+            logger.warning("Requested 0 degree trun")
             return
         steps = round(abs(angle) / 360 * 512)
+        logger.debug("Turning {} steps")
         method = self.step_clockwise if angle > 0 else self.step_counter_clockwise
         for _ in range(steps):
             method(step_delay)
