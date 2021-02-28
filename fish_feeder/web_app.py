@@ -1,11 +1,13 @@
 from functools import lru_cache
 from typing import Tuple
 
+from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from fastapi import BackgroundTasks, FastAPI, Form, Request
 from fastapi.params import Depends
 from fastapi.responses import RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
+from loguru import logger
 
 from . import api as api_
 from . import database
@@ -22,6 +24,18 @@ def get_api(settings: Settings = Depends(get_settings)) -> api_.API:
 
 def get_db(settings: Settings = Depends(get_settings)):
     return database.get_database_factory(settings.db_url())()
+
+
+@lru_cache()
+def get_scheduler() -> AsyncIOScheduler:
+    logger.info("Creating scheduler")
+    return AsyncIOScheduler()
+
+
+@app.on_event("startup")
+async def create_schedules():
+    get_scheduler().start()
+    logger.info("Started scheduler")
 
 
 @app.get("/")
