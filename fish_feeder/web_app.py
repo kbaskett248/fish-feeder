@@ -85,6 +85,7 @@ async def settings_get(
         context={
             "request": request,
             "feed_angle": db.get_feed_angle(),
+            "schedules": db.list_schedules(),
         },
     )
 
@@ -101,6 +102,7 @@ async def settings_post(
         context={
             "request": request,
             "feed_angle": db.get_feed_angle(),
+            "schedules": db.list_schedules(),
         },
     )
 
