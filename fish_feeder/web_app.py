@@ -113,13 +113,8 @@ async def settings_post(
     feed_angle: float = Form(...),
 ):
     db.set_feed_angle(feed_angle)
-    return templates.TemplateResponse(
-        "settings.html",
-        context={
-            "request": request,
-            "feed_angle": db.get_feed_angle(),
-            "schedules": db.list_schedules(),
-        },
+    return RedirectResponse(
+        request.url_for("settings_get"), status_code=status.HTTP_303_SEE_OTHER
     )
 
 
