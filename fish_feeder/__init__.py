@@ -21,5 +21,4 @@ def run_server(
 
 
 def run():
-
     typer.run(run_server)
