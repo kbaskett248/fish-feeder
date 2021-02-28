@@ -24,7 +24,7 @@ def get_api(settings: Settings = Depends(get_settings)) -> api_.API:
     return api_.get_api(settings.simulate, settings)
 
 
-def get_db(settings: Settings = Depends(get_settings)):
+def get_db(settings: Settings = Depends(get_settings)) -> database.Database:
     return database.get_database_factory(settings.db_url())()
 
 
@@ -40,19 +40,33 @@ async def create_schedules():
     settings = get_settings()
     api = get_api(settings)
     db = get_db(settings)
-    scheduler.add_job(
-        api.feed_fish,
-        trigger="cron",
-        minute="*/1",
-        kwargs={"db": db},
-        id="feeding",
-        name="Scheduled Feeding",
-        misfire_grace_time=3600,
-        coalesce=True,
-        max_instances=1,
-    )
+    for scheduled_feeding in db.list_schedules():
+        await add_scheduled_feeding(scheduler, scheduled_feeding, api, db)
+
     scheduler.start()
     logger.info("Started scheduler")
+
+
+async def add_scheduled_feeding(
+    scheduler: AsyncIOScheduler,
+    scheduled_feeding: database.Feeding,
+    api: api_.API,
+    db: database.Database,
+):
+    kwargs = {
+        "trigger": "cron",
+        "kwargs": {"db": db},
+        "id": repr(scheduled_feeding),
+        "name": "Scheduled Feeding",
+        "misfire_grace_time": 3600,
+        "coalesce": True,
+        "max_instances": 1,
+    }
+    cron_args = scheduled_feeding.get_cron_args()
+    logger.debug("Cron_args: {}", cron_args)
+    kwargs.update(scheduled_feeding.get_cron_args())
+    job = scheduler.add_job(api.feed_fish, **kwargs)
+    logger.info("Added scheduled feeding: {}", job)
 
 
 @app.get("/")
@@ -120,9 +134,14 @@ async def new_daily_schedule(request: Request):
 async def new_daily_schedule_post(
     request: Request,
     db: database.Database = Depends(get_db),
+    scheduler: AsyncIOScheduler = Depends(get_scheduler),
+    api: api_.API = Depends(get_api),
     scheduled_time: time = Form(...),
 ):
-    db.add_schedule(schedule_type=abstract.ScheduleMode.DAILY, time_=scheduled_time)
+    schedule = db.add_schedule(
+        schedule_type=abstract.ScheduleMode.DAILY, time_=scheduled_time
+    )
+    await add_scheduled_feeding(scheduler, schedule, api, db)
     return RedirectResponse(
         request.url_for("settings_get"), status_code=status.HTTP_303_SEE_OTHER
     )
