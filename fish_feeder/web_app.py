@@ -106,8 +106,9 @@ async def settings_get(
             "next_feeding": f"{scheduler.get_job(schedule_job_id(schedule)).next_run_time:%Y-%m-%d %H:%M}",
             "id": schedule.id,
         }
-        for schedule in db.list_schedules()
+        for schedule in sorted(db.list_schedules(), key=lambda s: s.time_)
     ]
+
     return templates.TemplateResponse(
         "settings.html",
         context={
