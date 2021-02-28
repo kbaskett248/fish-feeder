@@ -7,6 +7,9 @@
         <input type="submit" value="Feed the fish">
     </form>
 
+    <h2>Next Feeding</h2>
+    <p>{{ next_feeding | default('No feedings scheduled') }}</p>
+
     <div class="log-section">
         <h2>Previous Feedings</h2>
         <table>
