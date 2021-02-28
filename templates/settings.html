@@ -21,6 +21,11 @@
                 <tr>
                     <td>{{ schedule.schedule }}</td>
                     <td>{{ schedule.next_feeding }}</td>
+                    <td>
+                        <form action="{{ url_for('remove_schedule', item_id=schedule.id) }}" method="post">
+                            <input type="submit" value="Remove">
+                        </form>
+                    </td>
                 </tr>
             {% endfor %}
         </table>

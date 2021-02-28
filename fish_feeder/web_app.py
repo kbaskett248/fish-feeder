@@ -104,6 +104,7 @@ async def settings_get(
         {
             "schedule": str(schedule),
             "next_feeding": f"{scheduler.get_job(schedule_job_id(schedule)).next_run_time:%Y-%m-%d %H:%M}",
+            "id": schedule.id,
         }
         for schedule in db.list_schedules()
     ]
@@ -148,6 +149,27 @@ async def new_daily_schedule_post(
         schedule_type=abstract.ScheduleMode.DAILY, time_=scheduled_time
     )
     await add_scheduled_feeding(scheduler, schedule, api, db)
+    return RedirectResponse(
+        request.url_for("settings_get"), status_code=status.HTTP_303_SEE_OTHER
+    )
+
+
+@app.post("/settings/remove-schedule/{item_id}")
+async def remove_schedule(
+    item_id: int,
+    request: Request,
+    db: database.Database = Depends(get_db),
+    scheduler: AsyncIOScheduler = Depends(get_scheduler),
+):
+    for schedule in db.list_schedules():
+        if schedule.id == item_id:
+            job = scheduler.get_job(schedule_job_id(schedule))
+            logger.info("Removing scheduled job: {}", job)
+            if job:
+                job.remove()
+            logger.info("Removing schedule: {}", schedule)
+            db.remove_schedule(schedule)
+            break
     return RedirectResponse(
         request.url_for("settings_get"), status_code=status.HTTP_303_SEE_OTHER
     )
