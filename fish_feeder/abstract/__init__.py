@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
-from datetime import datetime
-from typing import List
+from datetime import datetime, time
+from typing import Dict, List, Optional, Union
+from enum import IntEnum
 
 
 class Feeding:
@@ -23,6 +24,28 @@ class Settings:
     feed_angle: float
 
 
+class ScheduleMode(IntEnum):
+    DAILY = 1
+
+
+class Schedule:
+    schedule_type: ScheduleMode
+    time_: Optional[time]
+
+    def get_cron_args(self) -> Dict[str, Union[str, int]]:
+        if self.schedule_type == ScheduleMode.DAILY:
+            if self.time_ is not None:
+                return {
+                    "day": "*",
+                    "hour": self.time_.hour,
+                    "minute": self.time_.minute,
+                }
+            else:
+                raise Exception("Invalid time for daily schedule")
+        else:
+            raise Exception("Unknown schedule type")
+
+
 class Database(ABC):
     @abstractmethod
     def add_feeding(self, requested: datetime) -> Feeding:
@@ -42,4 +65,18 @@ class Database(ABC):
 
     @abstractmethod
     def set_feed_angle(self, angle: float) -> None:
+        pass
+
+    @abstractmethod
+    def add_schedule(
+        self, schedule_type: ScheduleMode, time_: Optional[time]
+    ) -> Schedule:
+        pass
+
+    @abstractmethod
+    def update_schedule(self, schedule: Schedule, time_: Optional[time]) -> Schedule:
+        pass
+
+    @abstractmethod
+    def list_schedules(self) -> List[Schedule]:
         pass

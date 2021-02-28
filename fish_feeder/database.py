@@ -1,13 +1,14 @@
-from datetime import datetime as dt
+from datetime import datetime as dt, time
 from datetime import timedelta
 from functools import lru_cache
 from pathlib import Path
+from typing import List, Optional
 
 from sqlalchemy import create_engine, Column, Integer, DateTime
 from sqlalchemy.engine.base import Engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, Session
-from sqlalchemy.sql.sqltypes import Float
+from sqlalchemy.sql.sqltypes import Enum, Float, Time
 
 from . import abstract
 
@@ -37,6 +38,21 @@ class Settings(abstract.Settings, Base):
 
     id = Column(Integer, primary_key=True, index=True)
     feed_angle = Column(Float, nullable=False)
+
+
+class Schedule(abstract.Schedule, Base):
+    __tablename__ = "schedule"
+
+    id = Column(Integer, primary_key=True, index=True)
+    schedule_type = Column(Enum(abstract.ScheduleMode), nullable=False)
+    time_ = Column(Time, nullable=True)
+
+    def __init__(
+        self, schedule_type: abstract.ScheduleMode, time_: Optional[time]
+    ) -> None:
+        if schedule_type is abstract.ScheduleMode.DAILY and time_ is None:
+            raise Exception("Must specify time_ if schedule_type is DAILY")
+        super().__init__(schedule_type=schedule_type, time_=time_)
 
 
 class Database(abstract.Database):
@@ -93,6 +109,27 @@ class Database(abstract.Database):
             self.session.add(settings)
             self.session.commit()
             self.session.refresh(settings)
+
+    def add_schedule(
+        self, schedule_type: abstract.ScheduleMode, time_: Optional[time]
+    ) -> abstract.Schedule:
+        schedule = Schedule(schedule_type=schedule_type, time_=time_)
+        self.session.add(schedule)
+        self.session.commit()
+        self.session.refresh(schedule)
+        return schedule
+
+    def update_schedule(
+        self, schedule: abstract.Schedule, time_: Optional[time]
+    ) -> abstract.Schedule:
+        schedule.time_ = time_
+        self.session.add(schedule)
+        self.session.commit()
+        self.session.refresh(schedule)
+        return schedule
+
+    def list_schedules(self) -> List[abstract.Schedule]:
+        return self.session.query(Schedule).all()
 
 
 class DatabaseFactory:
