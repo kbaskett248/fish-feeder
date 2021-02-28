@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <h2>Settings</h2>
+    <h3>Add Daily Schedule</h3>
+    <form action="{{ url_for('new_daily_schedule_post') }}" method="post">
+        <div class="form-field">
+            <label for="scheduled_time">Time</label>
+            <p>The time of day for the feeding.</p>
+            <input type="type" name="scheduled_time" value="">
+        </div>
+        <input type="submit" value="Add">
+    </form>
+{% endblock content %}

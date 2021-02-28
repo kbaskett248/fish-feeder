@@ -1,8 +1,10 @@
+from datetime import time
+from fish_feeder import abstract
 from functools import lru_cache
 from typing import Tuple
 
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
-from fastapi import BackgroundTasks, FastAPI, Form, Request
+from fastapi import BackgroundTasks, FastAPI, Form, Request, status
 from fastapi.params import Depends
 from fastapi.responses import RedirectResponse
 from fastapi.staticfiles import StaticFiles
@@ -54,7 +56,7 @@ async def create_schedules():
 
 
 @app.get("/")
-async def status(request: Request, db: database.Database = Depends(get_db)):
+async def feeder_status(request: Request, db: database.Database = Depends(get_db)):
     return templates.TemplateResponse(
         "status.html",
         context={
@@ -72,7 +74,7 @@ async def feed_fish_redirect(
     db: database.Database = Depends(get_db),
 ):
     api.feed_fish(db, bg)
-    return RedirectResponse(request.url_for("status"))
+    return RedirectResponse(request.url_for("feeder_status"))
 
 
 @app.get("/settings")
@@ -104,6 +106,25 @@ async def settings_post(
             "feed_angle": db.get_feed_angle(),
             "schedules": db.list_schedules(),
         },
+    )
+
+
+@app.get("/settings/new-daily-schedule")
+async def new_daily_schedule(request: Request):
+    return templates.TemplateResponse(
+        "edit-daily-schedule.html", context={"request": request}
+    )
+
+
+@app.post("/settings/new-daily-schedule")
+async def new_daily_schedule_post(
+    request: Request,
+    db: database.Database = Depends(get_db),
+    scheduled_time: time = Form(...),
+):
+    db.add_schedule(schedule_type=abstract.ScheduleMode.DAILY, time_=scheduled_time)
+    return RedirectResponse(
+        request.url_for("settings_get"), status_code=status.HTTP_303_SEE_OTHER
     )
 
 
