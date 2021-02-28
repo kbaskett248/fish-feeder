@@ -10,5 +10,22 @@
         </div>
         <input type="submit" value="Save">
     </form>
+    <h3>Scheduled Feedings</h3>
+    {% if schedules %}
+        <table>
+            <tr>
+                <th>Schedule</th>
+                <th>Next feeding</th>
+            </tr>
+            {% for schedule in schedules %}
+                <tr>
+                    <td>{{ schedule.schedule }}</td>
+                    <td>{{ schedule.next_feeding }}</td>
+                </tr>
+            {% endfor %}
+        </table>
+    {% else %}
+        <p>No schedules</p>
+    {% endif %}
     <a href="{{ url_for('new_daily_schedule') }}">Add daily schedule</a>
 {% endblock content %}
