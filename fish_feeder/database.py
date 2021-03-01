@@ -54,6 +54,9 @@ class Schedule(abstract.Schedule, Base):
             raise Exception("Must specify time_ if schedule_type is DAILY")
         super().__init__(schedule_type=schedule_type, time_=time_)
 
+    def get_id(self) -> str:
+        return str(self.id)
+
 
 class Database(abstract.Database):
     session: Session

@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from datetime import datetime, time
-from typing import Dict, List, Optional, Union
 from enum import IntEnum
+from typing import Callable, Dict, List, Optional, Tuple, Union
 
 
 class Feeding:
@@ -47,12 +47,16 @@ class Schedule:
 
     def __str__(self) -> str:
         if self.schedule_type == ScheduleMode.DAILY:
-            return f"Daily at {self.time_}"
+            return f"Daily at {self.time}"
         else:
             return "Unsupported schedule type"
 
     def __hash__(self) -> int:
         return hash((self.schedule_type, self.time_))
+
+    @abstractmethod
+    def get_id(self) -> str:
+        pass
 
 
 class Database(ABC):
@@ -97,13 +101,15 @@ class Database(ABC):
 
 class Scheduler(ABC):
     @abstractmethod
-    def add_scheduled_feeding(self, db: Database, schedule: Schedule):
+    async def add_scheduled_feeding(
+        self, schedule: Schedule, feeding_callback: Callable
+    ):
         pass
 
     @abstractmethod
-    def remove_scheduled_feeding(self, db: Database, schedule: Schedule):
+    def remove_scheduled_feeding(self, schedule: Schedule):
         pass
 
     @abstractmethod
-    def list_scheduled_feedings(self, db: Database):
+    def list_scheduled_feedings(self) -> List[Tuple[str, time]]:
         pass
