@@ -93,3 +93,17 @@ class Database(ABC):
     @abstractmethod
     def remove_schedule(self, schedule: Schedule) -> None:
         pass
+
+
+class Scheduler(ABC):
+    @abstractmethod
+    def add_scheduled_feeding(self, db: Database, schedule: Schedule):
+        pass
+
+    @abstractmethod
+    def remove_scheduled_feeding(self, db: Database, schedule: Schedule):
+        pass
+
+    @abstractmethod
+    def list_scheduled_feedings(self, db: Database):
+        pass
