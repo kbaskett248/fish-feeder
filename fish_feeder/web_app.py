@@ -21,7 +21,9 @@ templates = Jinja2Templates(directory="templates/")
 
 
 def get_api(settings: Settings = Depends(get_settings)) -> api_.API:
-    return api_.get_api(settings.simulate, settings)
+    return api_.get_api(
+        database.get_database_factory(settings.db_url()), settings.simulate, settings
+    )
 
 
 def get_db(settings: Settings = Depends(get_settings)) -> database.Database:

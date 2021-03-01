@@ -6,7 +6,7 @@ from typing import Any, Callable, Optional
 from loguru import logger
 from pydantic import BaseModel
 
-from .abstract import Database
+from .abstract import Database, Database, Scheduler
 from .device import Device, PinSpec
 
 
@@ -15,6 +15,15 @@ class Backgroundable(BaseModel):
 
 
 class API(ABC):
+    feed_fish_callback: Callable
+
+    def __init__(self, db_factory: Callable):
+        def feed_fish_callback():
+            db = db_factory()
+            self.feed_fish(db)
+
+        self.feed_fish_callback = feed_fish_callback
+
     def background_task(
         self, task: Callable, *args, bg: Optional[Backgroundable] = None
     ):
@@ -32,6 +41,12 @@ class API(ABC):
     def _feed_fish(self, db: Database, feeding):
         db.add_time_fed(feeding, datetime.now())
 
+    def load_scheduled_feedings(self, db: Database, scheduler: Scheduler):
+        logger.info("Loading feeding schedules")
+
+        for scheduled_feeding in db.list_schedules():
+            scheduler.add_scheduled_feeding(scheduled_feeding, self.feed_fish_callback)
+
 
 class SimulatedAPI(API):
     def _feed_fish(self, db: Database, feeding):
@@ -42,8 +57,8 @@ class SimulatedAPI(API):
 class DeviceAPI(API):
     device: Device
 
-    def __init__(self, pin_spec: PinSpec) -> None:
-        super().__init__()
+    def __init__(self, db_factory: Callable, pin_spec: PinSpec) -> None:
+        super().__init__(db_factory)
         self.device = Device(pin_spec)
 
     def _feed_fish(self, db: Database, feeding):
@@ -55,11 +70,12 @@ class DeviceAPI(API):
 
 @lru_cache()
 def get_api(
+    db_factory: Callable,
     simulate: bool = False,
     pin_spec: Optional[PinSpec] = None,
 ) -> API:
     if simulate:
-        return SimulatedAPI()
+        return SimulatedAPI(db_factory)
     else:
         assert pin_spec is not None
-        return DeviceAPI(pin_spec)
+        return DeviceAPI(db_factory, pin_spec)
