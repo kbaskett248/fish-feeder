@@ -47,7 +47,7 @@ class Schedule:
 
     def __str__(self) -> str:
         if self.schedule_type == ScheduleMode.DAILY:
-            return f"Daily at {self.time}"
+            return f"Daily at {self.time_}"
         else:
             return "Unsupported schedule type"
 
