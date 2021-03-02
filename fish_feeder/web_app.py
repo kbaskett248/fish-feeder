@@ -80,8 +80,10 @@ async def feeder_status(
     db: database.Database = Depends(get_db),
     scheduler: AsyncIOScheduler = Depends(get_scheduler),
 ):
-    next_feeding = sorted(job.next_run_time for job in scheduler.get_jobs())[0]
-    next_feeding = f"{next_feeding:%Y-%m-%d %H:%M}" if next_feeding else ""
+    feedings = sorted(job.next_run_time for job in scheduler.get_jobs())
+    next_feeding = (
+        f"{feedings[0]:%Y-%m-%d %H:%M}" if feedings else "No feedings scheduled"
+    )
     return templates.TemplateResponse(
         "status.html",
         context={
