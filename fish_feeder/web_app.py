@@ -74,7 +74,7 @@ async def add_scheduled_feeding(
     logger.info("Added scheduled feeding: {}", job)
 
 
-@app.get("/")
+@app.get("/", include_in_schema=False)
 async def feeder_status(
     request: Request,
     db: database.Database = Depends(get_db),
@@ -92,7 +92,7 @@ async def feeder_status(
     )
 
 
-@app.get("/feed")
+@app.get("/feed", include_in_schema=False)
 async def feed_fish_redirect(
     request: Request,
     bg: BackgroundTasks,
@@ -103,7 +103,7 @@ async def feed_fish_redirect(
     return RedirectResponse(request.url_for("feeder_status"))
 
 
-@app.get("/settings")
+@app.get("/settings", include_in_schema=False)
 async def settings_get(
     request: Request,
     db: database.Database = Depends(get_db),
@@ -128,7 +128,7 @@ async def settings_get(
     )
 
 
-@app.post("/settings")
+@app.post("/settings", include_in_schema=False)
 async def settings_post(
     request: Request,
     db: database.Database = Depends(get_db),
@@ -140,14 +140,14 @@ async def settings_post(
     )
 
 
-@app.get("/settings/new-daily-schedule")
+@app.get("/settings/new-daily-schedule", include_in_schema=False)
 async def new_daily_schedule(request: Request):
     return templates.TemplateResponse(
         "edit-daily-schedule.html", context={"request": request}
     )
 
 
-@app.post("/settings/new-daily-schedule")
+@app.post("/settings/new-daily-schedule", include_in_schema=False)
 async def new_daily_schedule_post(
     request: Request,
     db: database.Database = Depends(get_db),
@@ -164,7 +164,7 @@ async def new_daily_schedule_post(
     )
 
 
-@app.post("/settings/remove-schedule/{item_id}")
+@app.post("/settings/remove-schedule/{item_id}", include_in_schema=False)
 async def remove_schedule(
     item_id: int,
     request: Request,
@@ -185,7 +185,7 @@ async def remove_schedule(
     )
 
 
-@app.get("/favicon.ico")
+@app.get("/favicon.ico", include_in_schema=False)
 async def favicon():
     return RedirectResponse(
         "/static/favicon.ico", status_code=status.HTTP_301_MOVED_PERMANENTLY
