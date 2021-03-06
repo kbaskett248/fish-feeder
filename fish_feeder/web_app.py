@@ -185,6 +185,13 @@ async def remove_schedule(
     )
 
 
+@app.get("/favicon.ico")
+async def favicon():
+    return RedirectResponse(
+        "/static/favicon.ico", status_code=status.HTTP_301_MOVED_PERMANENTLY
+    )
+
+
 @app.post("/api/feed")
 async def feed_fish(
     bg: BackgroundTasks,
