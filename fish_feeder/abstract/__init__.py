@@ -101,13 +101,13 @@ class Database(ABC):
 
 class Scheduler(ABC):
     @abstractmethod
-    async def add_scheduled_feeding(
+    def add_scheduled_feeding(
         self, schedule: Schedule, feeding_callback: Callable
-    ):
+    ) -> time:
         pass
 
     @abstractmethod
-    def remove_scheduled_feeding(self, schedule: Schedule):
+    def remove_scheduled_feeding(self, schedule: Schedule) -> Optional[time]:
         pass
 
     @abstractmethod

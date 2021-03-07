@@ -1,12 +1,12 @@
 from abc import ABC, abstractmethod
-from datetime import datetime
+from datetime import datetime, time
 from functools import lru_cache, partial
-from typing import Any, Callable, Optional
+from typing import Any, Callable, List, Optional, Tuple
 
 from loguru import logger
 from pydantic import BaseModel
 
-from .abstract import Database, Database, Scheduler
+from .abstract import Database, Schedule, ScheduleMode, Scheduler
 from .device import Device, PinSpec
 
 
@@ -46,6 +46,39 @@ class API(ABC):
 
         for scheduled_feeding in db.list_schedules():
             scheduler.add_scheduled_feeding(scheduled_feeding, self.feed_fish_callback)
+
+    def next_feeding_time(self, scheduler: Scheduler) -> Optional[time]:
+        feedings = scheduler.list_scheduled_feedings()
+        return feedings[0][1] if feedings else None
+
+    def list_schedules_with_runtimes(
+        self, db: Database, scheduler: Scheduler
+    ) -> List[Tuple[Schedule, Optional[time]]]:
+        schedules = sorted(db.list_schedules(), key=lambda s: s.time_)
+        runtimes = dict(scheduler.list_scheduled_feedings())
+        return [
+            (schedule, runtimes.get(schedule.get_id(), None)) for schedule in schedules
+        ]
+
+    def add_scheduled_feeding(
+        self, db: Database, scheduler: Scheduler, scheduled_time: time
+    ) -> Tuple[Schedule, time]:
+        schedule = db.add_schedule(
+            schedule_type=ScheduleMode.DAILY, time_=scheduled_time
+        )
+        t = scheduler.add_scheduled_feeding(schedule, self.feed_fish_callback)
+        return (schedule, t)
+
+    def remove_scheduled_feeding(
+        self, db: Database, scheduler: Scheduler, schedule_id: int
+    ) -> Optional[Tuple[Schedule, Optional[time]]]:
+        for schedule in db.list_schedules():
+            if schedule.id == schedule_id:
+                t = scheduler.remove_scheduled_feeding(schedule)
+                logger.info("Removing schedule: {}", schedule)
+                db.remove_schedule(schedule)
+                return (schedule, t)
+        return None
 
 
 class SimulatedAPI(API):

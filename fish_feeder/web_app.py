@@ -1,7 +1,6 @@
 from datetime import time
 from functools import lru_cache
 
-from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from fastapi import BackgroundTasks, FastAPI, Form, Request, status
 from fastapi.params import Depends
 from fastapi.responses import RedirectResponse
@@ -12,7 +11,7 @@ from loguru import logger
 from fish_feeder import abstract
 
 from . import api as api_
-from . import database
+from . import database, scheduler
 from .settings import Settings, get_settings
 
 app = FastAPI()
@@ -30,10 +29,8 @@ def get_db(settings: Settings = Depends(get_settings)) -> database.Database:
     return database.get_database_factory(settings.db_url())()
 
 
-@lru_cache()
-def get_scheduler() -> AsyncIOScheduler:
-    logger.info("Creating scheduler")
-    return AsyncIOScheduler()
+def get_scheduler() -> scheduler.Scheduler:
+    return scheduler.get_scheduler()
 
 
 def schedule_job_id(schedule: database.Schedule) -> str:
@@ -46,43 +43,19 @@ async def create_schedules():
     settings = get_settings()
     api = get_api(settings)
     db = get_db(settings)
-    for scheduled_feeding in db.list_schedules():
-        await add_scheduled_feeding(scheduler, scheduled_feeding, api, db)
-
-    scheduler.start()
-    logger.info("Started scheduler")
-
-
-async def add_scheduled_feeding(
-    scheduler: AsyncIOScheduler,
-    scheduled_feeding: database.Feeding,
-    api: api_.API,
-    db: database.Database,
-):
-    kwargs = {
-        "trigger": "cron",
-        "kwargs": {"db": db},
-        "id": schedule_job_id(scheduled_feeding),
-        "name": "Scheduled Feeding",
-        "misfire_grace_time": 3600,
-        "coalesce": True,
-        "max_instances": 1,
-    }
-    cron_args = scheduled_feeding.get_cron_args()
-    kwargs.update(cron_args)
-    job = scheduler.add_job(api.feed_fish, **kwargs)
-    logger.info("Added scheduled feeding: {}", job)
+    api.load_scheduled_feedings(db, scheduler)
 
 
 @app.get("/", include_in_schema=False)
 async def feeder_status(
     request: Request,
+    api: api_.API = Depends(get_api),
     db: database.Database = Depends(get_db),
-    scheduler: AsyncIOScheduler = Depends(get_scheduler),
+    scheduler: scheduler.Scheduler = Depends(get_scheduler),
 ):
-    feedings = sorted(job.next_run_time for job in scheduler.get_jobs())
+    next_feeding = api.next_feeding_time(scheduler)
     next_feeding = (
-        f"{feedings[0]:%Y-%m-%d %H:%M}" if feedings else "No feedings scheduled"
+        f"{next_feeding:%Y-%m-%d %H:%M}" if next_feeding else "No feedings scheduled"
     )
     return templates.TemplateResponse(
         "status.html",
@@ -108,16 +81,17 @@ async def feed_fish_redirect(
 @app.get("/settings", include_in_schema=False)
 async def settings_get(
     request: Request,
+    api: api_.API = Depends(get_api),
     db: database.Database = Depends(get_db),
-    scheduler: AsyncIOScheduler = Depends(get_scheduler),
+    scheduler: scheduler.Scheduler = Depends(get_scheduler),
 ):
     schedules = [
         {
             "schedule": str(schedule),
-            "next_feeding": f"{scheduler.get_job(schedule_job_id(schedule)).next_run_time:%Y-%m-%d %H:%M}",
+            "next_feeding": f"{next_feeding:%Y-%m-%d %H:%M}" if next_feeding else "",
             "id": schedule.id,
         }
-        for schedule in sorted(db.list_schedules(), key=lambda s: s.time_)
+        for schedule, next_feeding in api.list_schedules_with_runtimes(db, scheduler)
     ]
 
     return templates.TemplateResponse(
@@ -153,14 +127,11 @@ async def new_daily_schedule(request: Request):
 async def new_daily_schedule_post(
     request: Request,
     db: database.Database = Depends(get_db),
-    scheduler: AsyncIOScheduler = Depends(get_scheduler),
+    scheduler: scheduler.Scheduler = Depends(get_scheduler),
     api: api_.API = Depends(get_api),
     scheduled_time: time = Form(...),
 ):
-    schedule = db.add_schedule(
-        schedule_type=abstract.ScheduleMode.DAILY, time_=scheduled_time
-    )
-    await add_scheduled_feeding(scheduler, schedule, api, db)
+    api.add_scheduled_feeding(db, scheduler, scheduled_time)
     return RedirectResponse(
         request.url_for("settings_get"), status_code=status.HTTP_303_SEE_OTHER
     )
@@ -171,17 +142,10 @@ async def remove_schedule(
     item_id: int,
     request: Request,
     db: database.Database = Depends(get_db),
-    scheduler: AsyncIOScheduler = Depends(get_scheduler),
+    scheduler: scheduler.Scheduler = Depends(get_scheduler),
+    api: api_.API = Depends(get_api),
 ):
-    for schedule in db.list_schedules():
-        if schedule.id == item_id:
-            job = scheduler.get_job(schedule_job_id(schedule))
-            logger.info("Removing scheduled job: {}", job)
-            if job:
-                job.remove()
-            logger.info("Removing schedule: {}", schedule)
-            db.remove_schedule(schedule)
-            break
+    api.remove_scheduled_feeding(db, scheduler, item_id)
     return RedirectResponse(
         request.url_for("settings_get"), status_code=status.HTTP_303_SEE_OTHER
     )
