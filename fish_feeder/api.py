@@ -1,8 +1,9 @@
 import asyncio
 from abc import ABC, abstractmethod
 from datetime import datetime, time
-from functools import lru_cache, partial
-from typing import Any, Callable, List, Optional, Tuple
+from functools import lru_cache
+from typing import Any, Callable, Coroutine, List, Optional, Tuple, Union
+import inspect
 
 from loguru import logger
 from pydantic import BaseModel
@@ -15,21 +16,26 @@ class Backgroundable(BaseModel):
     add_task: Callable[..., Any]
 
 
+BackgroundTask = Union[Callable, Coroutine]
+
+
 class API(ABC):
     feed_fish_callback: Callable
 
     def __init__(self, db_factory: Callable):
-        async def cb():
+        def cb():
             db = db_factory()
-            await self.feed_fish(db)
+            self.feed_fish(db)
 
         self.feed_fish_callback = cb
 
     def background_task(
-        self, task: Callable, *args, bg: Optional[Backgroundable] = None
+        self, task: BackgroundTask, *args, bg: Optional[Backgroundable] = None
     ):
         if bg is None:
-            task(*args)
+            res = task(*args)
+            if inspect.isawaitable(res):
+                asyncio.run(res)
         else:
             bg.add_task(task, *args)
 
