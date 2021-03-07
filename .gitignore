@@ -2,3 +2,4 @@
 /.env
 /fish-feeder.db
 **/__pycache__
+/dist
