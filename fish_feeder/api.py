@@ -55,9 +55,8 @@ class API(ABC):
         for scheduled_feeding in db.list_schedules():
             scheduler.add_scheduled_feeding(scheduled_feeding, self.feed_fish_callback)
 
-    def next_feeding_time(self, scheduler: Scheduler) -> Optional[time]:
-        feedings = scheduler.list_scheduled_feedings()
-        return feedings[0][1] if feedings else None
+    def next_feeding_times(self, scheduler: Scheduler) -> List[time]:
+        return [f[1] for f in scheduler.list_scheduled_feedings()]
 
     def list_schedules_with_runtimes(
         self, db: Database, scheduler: Scheduler

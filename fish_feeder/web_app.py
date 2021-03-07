@@ -54,10 +54,11 @@ async def feeder_status(
     db: database.Database = Depends(get_db),
     scheduler: scheduler.Scheduler = Depends(get_scheduler),
 ):
-    next_feeding = api.next_feeding_time(scheduler)
-    next_feeding = (
-        f"{next_feeding:%Y-%m-%d %H:%M}" if next_feeding else "No feedings scheduled"
-    )
+    scheduled_feedings = api.next_feeding_times(scheduler)
+    try:
+        next_feeding = f"{scheduled_feedings[0]:%Y-%m-%d %H:%M}"
+    except IndexError:
+        next_feeding = "No feedings scheduled"
     return templates.TemplateResponse(
         "status.html",
         context={
@@ -168,6 +169,16 @@ class Feeding(BaseModel):
 
 
 @app.post("/api/feed", response_model=Feeding)
+async def feed_fish(
+    bg: BackgroundTasks,
+    api: api_.API = Depends(get_api),
+    db: database.Database = Depends(get_db),
+):
+    """Schedule the fish to be fed."""
+    return api.feed_fish(db, bg)
+
+
+@app.post("/api/next_feeding")
 async def feed_fish(
     bg: BackgroundTasks,
     api: api_.API = Depends(get_api),
