@@ -45,14 +45,14 @@ class API(ABC):
         self.background_task(self._feed_fish, db, feeding, bg=bg)
         return feeding
 
+    @abstractmethod
+    def _feed_fish(self, db: Database, feeding):
+        db.add_time_fed(feeding, datetime.now())
+
     def list_feedings(
         self, db: Database, limit: int = 20, date_limit: Optional[datetime] = None
     ) -> List[Feeding]:
         return db.list_feedings(limit, date_limit)
-
-    @abstractmethod
-    def _feed_fish(self, db: Database, feeding):
-        db.add_time_fed(feeding, datetime.now())
 
     def load_scheduled_feedings(self, db: Database, scheduler: Scheduler):
         logger.info("Loading feeding schedules")
