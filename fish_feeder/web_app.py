@@ -1,5 +1,5 @@
-from datetime import time
-from functools import lru_cache
+from datetime import datetime, time
+from typing import Optional
 
 from fastapi import BackgroundTasks, FastAPI, Form, Request, status
 from fastapi.params import Depends
@@ -7,8 +7,7 @@ from fastapi.responses import RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from loguru import logger
-
-from fish_feeder import abstract
+from pydantic import BaseModel
 
 from . import api as api_
 from . import database, scheduler
@@ -160,10 +159,19 @@ async def favicon():
     )
 
 
-@app.post("/api/feed")
+class Feeding(BaseModel):
+    time_requested: datetime
+    time_fed: Optional[datetime]
+
+    class Config:
+        orm_mode = True
+
+
+@app.post("/api/feed", response_model=Feeding)
 async def feed_fish(
     bg: BackgroundTasks,
     api: api_.API = Depends(get_api),
     db: database.Database = Depends(get_db),
 ):
-    api.feed_fish(db, bg)
+    """Schedule the fish to be fed."""
+    return api.feed_fish(db, bg)

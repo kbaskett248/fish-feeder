@@ -1,14 +1,14 @@
 import asyncio
+import inspect
 from abc import ABC, abstractmethod
 from datetime import datetime, time
 from functools import lru_cache
 from typing import Any, Callable, Coroutine, List, Optional, Tuple, Union
-import inspect
 
 from loguru import logger
 from pydantic import BaseModel
 
-from .abstract import Database, Schedule, ScheduleMode, Scheduler
+from .abstract import Database, Feeding, Schedule, ScheduleMode, Scheduler
 from .device import Device, PinSpec
 
 
@@ -39,10 +39,11 @@ class API(ABC):
         else:
             bg.add_task(task, *args)
 
-    def feed_fish(self, db: Database, bg: Optional[Backgroundable] = None):
+    def feed_fish(self, db: Database, bg: Optional[Backgroundable] = None) -> Feeding:
         feeding = db.add_feeding(datetime.now())
         logger.info("Requesting feeding")
         self.background_task(self._feed_fish, db, feeding, bg=bg)
+        return feeding
 
     @abstractmethod
     def _feed_fish(self, db: Database, feeding):
