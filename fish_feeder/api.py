@@ -1,3 +1,4 @@
+import asyncio
 from abc import ABC, abstractmethod
 from datetime import datetime, time
 from functools import lru_cache, partial
@@ -18,11 +19,11 @@ class API(ABC):
     feed_fish_callback: Callable
 
     def __init__(self, db_factory: Callable):
-        def feed_fish_callback():
+        async def cb():
             db = db_factory()
-            self.feed_fish(db)
+            await self.feed_fish(db)
 
-        self.feed_fish_callback = feed_fish_callback
+        self.feed_fish_callback = cb
 
     def background_task(
         self, task: Callable, *args, bg: Optional[Backgroundable] = None
@@ -82,7 +83,8 @@ class API(ABC):
 
 
 class SimulatedAPI(API):
-    def _feed_fish(self, db: Database, feeding):
+    async def _feed_fish(self, db: Database, feeding):
+        await asyncio.sleep(2)
         logger.info("I simulated feeding the fish by rotating {}", db.get_feed_angle())
         super()._feed_fish(db, feeding)
 
@@ -94,9 +96,9 @@ class DeviceAPI(API):
         super().__init__(db_factory)
         self.device = Device(pin_spec)
 
-    def _feed_fish(self, db: Database, feeding):
-        self.device.pulse_led()
-        self.device.turn_motor(db.get_feed_angle())
+    async def _feed_fish(self, db: Database, feeding):
+        tasks = (self.device.pulse_led(), self.device.turn_motor(db.get_feed_angle()))
+        await asyncio.gather(*tasks)
         logger.info("I fed the fish by rotating {}", db.get_feed_angle())
         super()._feed_fish(db, feeding)
 

@@ -1,5 +1,5 @@
+from asyncio import sleep
 from enum import Enum
-from time import sleep
 from typing import Iterable, Sequence, Tuple
 
 from gpiozero import LED, OutputDevice
@@ -124,7 +124,7 @@ class StepperMotor:
         self.pins = [OutputDevice(pin) for pin in (pin1, pin2, pin3, pin4)]
         self.turning = False
 
-    def turn_angle(self, angle: float, step_delay: float = 0.005) -> None:
+    async def turn_angle(self, angle: float, step_delay: float = 0.005) -> None:
         if self.turning:
             raise StepperMotorInUseException(self)
 
@@ -137,17 +137,19 @@ class StepperMotor:
         logger.debug("Turning {} steps")
         method = self.step_clockwise if angle > 0 else self.step_counter_clockwise
         for _ in range(steps):
-            method(step_delay)
+            await method(step_delay)
 
         self.turning = False
 
-    def step_clockwise(self, time_delay: float = 0.005) -> None:
-        self._step(self.sequence, time_delay)
+    async def step_clockwise(self, time_delay: float = 0.005) -> None:
+        await self._step(self.sequence, time_delay)
 
-    def step_counter_clockwise(self, time_delay: float = 0.005) -> None:
-        self._step(reversed(self.sequence), time_delay)
+    async def step_counter_clockwise(self, time_delay: float = 0.005) -> None:
+        await self._step(reversed(self.sequence), time_delay)
 
-    def _step(self, sequence: Iterable[PartialStep], time_delay: float = 0.005) -> None:
+    async def _step(
+        self, sequence: Iterable[PartialStep], time_delay: float = 0.005
+    ) -> None:
         for partial_step in sequence:
             for command, pin in zip(partial_step, self.pins):
                 if command == 1:
@@ -155,7 +157,7 @@ class StepperMotor:
                 else:
                     pin.off()
 
-            sleep(time_delay)
+            await sleep(time_delay)
 
 
 class Device:
@@ -169,10 +171,10 @@ class Device:
             pins.motor_pin_1, pins.motor_pin_2, pins.motor_pin_3, pins.motor_pin_4
         )
 
-    def pulse_led(self):
+    async def pulse_led(self):
         self.led.on()
-        sleep(2.5)
+        await sleep(2.5)
         self.led.off()
 
-    def turn_motor(self, angle: float) -> None:
-        self.motor.turn_angle(angle)
+    async def turn_motor(self, angle: float) -> None:
+        await self.motor.turn_angle(angle)
