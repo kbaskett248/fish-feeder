@@ -134,8 +134,8 @@ class StepperMotor:
             logger.warning("Requested 0 degree trun")
             return
         steps = round(abs(angle) / 360 * 512)
-        logger.debug("Turning {} steps")
-        method = self.step_clockwise if angle > 0 else self.step_counter_clockwise
+        logger.debug("Turning {} steps", steps)
+        method = self.step_counter_clockwise if angle > 0 else self.step_clockwise
         for _ in range(steps):
             await method(step_delay)
 
@@ -181,4 +181,4 @@ class Device:
             self.led.off()
 
     async def turn_motor(self, angle: float) -> None:
-        await self.motor.turn_angle(angle)
+        await self.motor.turn_angle(angle, step_delay=0.001)
