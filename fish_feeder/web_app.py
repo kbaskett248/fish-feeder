@@ -14,7 +14,9 @@ from . import api as api_
 from . import database, scheduler
 from .settings import Settings, get_settings
 
-app = FastAPI()
+API_VERSION = "0.1.0"
+
+app = FastAPI(title="Fish Feeder 5000", version=API_VERSION)
 app.mount("/static", StaticFiles(directory="static"), name="static")
 templates = Jinja2Templates(directory="templates/")
 
