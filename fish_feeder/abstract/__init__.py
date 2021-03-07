@@ -69,7 +69,9 @@ class Database(ABC):
         pass
 
     @abstractmethod
-    def list_feedings(self) -> List[Feeding]:
+    def list_feedings(
+        self, limit: int = 20, date_limit: Optional[datetime] = None
+    ) -> List[Feeding]:
         pass
 
     @abstractmethod

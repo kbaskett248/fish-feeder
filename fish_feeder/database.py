@@ -80,13 +80,16 @@ class Database(abstract.Database):
         self.session.refresh(feeding)
         return feeding
 
-    def list_feedings(self):
-        date_limit = dt.now() - timedelta(days=14)
+    def list_feedings(
+        self, limit: int = 20, date_limit: Optional[dt] = None
+    ) -> List[abstract.Feeding]:
+        if date_limit is None:
+            date_limit = dt.now() - timedelta(days=14)
         return (
             self.session.query(Feeding)
             .filter(Feeding.time_requested > date_limit)
             .order_by(Feeding.time_requested.desc())
-            .limit(20)
+            .limit(limit)
             .all()
         )
 

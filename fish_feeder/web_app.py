@@ -178,6 +178,17 @@ async def feed_fish(
     return api.feed_fish(db, bg)
 
 
+@app.get("/api/feedings", response_model=List[Feeding])
+async def feed_fish(
+    limit=20,
+    date_limit: Optional[datetime] = None,
+    api: api_.API = Depends(get_api),
+    db: database.Database = Depends(get_db),
+):
+    """Return the times that the fish was fed."""
+    return api.list_feedings(db, limit, date_limit)
+
+
 class ScheduledFeeding(BaseModel):
     scheduled_time: datetime
 
