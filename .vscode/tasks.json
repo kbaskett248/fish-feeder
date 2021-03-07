@@ -8,6 +8,58 @@
             "type": "shell",
             "command": "poetry run fish-feeder --dev",
             "problemMatcher": []
+        },
+        {
+            "label": "Bump version",
+            "type": "shell",
+            "command": [
+                "poetry",
+                "run",
+                "python",
+                "version.py",
+                "${input:versionUpdate}"
+            ],
+            "detail": "Increment the poetry version and the package version",
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "shared",
+                "showReuseMessage": true,
+                "clear": false
+            },
+            "problemMatcher": []
+        }
+    ],
+    "inputs": [
+        {
+            "id": "versionUpdate",
+            "description": "Type of version update",
+            "default": "minor",
+            "type": "pickString",
+            "options": [
+                {
+                    "value": "patch"
+                },
+                {
+                    "value": "minor"
+                },
+                {
+                    "value": "major"
+                },
+                {
+                    "value": "prepatch"
+                },
+                {
+                    "value": "preminor"
+                },
+                {
+                    "value": "premajor"
+                },
+                {
+                    "value": "prerelease"
+                }
+            ]
         }
     ]
 }
