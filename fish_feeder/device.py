@@ -1,6 +1,6 @@
 from asyncio import sleep
 from enum import Enum
-from typing import Iterable, Sequence, Tuple
+from typing import Iterable, Optional, Sequence, Tuple
 
 from gpiozero import LED, OutputDevice
 from loguru import logger
@@ -161,20 +161,24 @@ class StepperMotor:
 
 
 class Device:
-    led: LED
+    led: Optional[LED]
     motor: StepperMotor
 
     @validate_arguments
     def __init__(self, pins: PinSpec):
-        self.led = LED(pins.led_pin)
+        if pins.led_pin:
+            self.led = LED(pins.led_pin)
+        else:
+            self.led = None
         self.motor = StepperMotor(
             pins.motor_pin_1, pins.motor_pin_2, pins.motor_pin_3, pins.motor_pin_4
         )
 
-    async def pulse_led(self):
-        self.led.on()
-        await sleep(2.5)
-        self.led.off()
+    async def pulse_led(self) -> None:
+        if self.led is not None:
+            self.led.on()
+            await sleep(2.5)
+            self.led.off()
 
     async def turn_motor(self, angle: float) -> None:
         await self.motor.turn_angle(angle)
