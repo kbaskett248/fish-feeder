@@ -1,5 +1,5 @@
 from datetime import datetime, time
-from typing import Optional
+from typing import List, Optional
 
 from fastapi import BackgroundTasks, FastAPI, Form, Request, status
 from fastapi.params import Depends
@@ -168,7 +168,7 @@ class Feeding(BaseModel):
         orm_mode = True
 
 
-@app.post("/api/feed", response_model=Feeding)
+@app.post("/api/feedings", response_model=Feeding)
 async def feed_fish(
     bg: BackgroundTasks,
     api: api_.API = Depends(get_api),
@@ -178,11 +178,15 @@ async def feed_fish(
     return api.feed_fish(db, bg)
 
 
-@app.post("/api/next_feeding")
-async def feed_fish(
+class ScheduledFeeding(BaseModel):
+    scheduled_time: datetime
+
+
+@app.get("/api/scheduled_feedings", response_model=List[ScheduledFeeding])
+async def next_feedings(
     bg: BackgroundTasks,
     api: api_.API = Depends(get_api),
-    db: database.Database = Depends(get_db),
+    scheduler: scheduler.Scheduler = Depends(get_scheduler),
 ):
-    """Schedule the fish to be fed."""
-    return api.feed_fish(db, bg)
+    """Return the upcoming feeding times."""
+    return [{"scheduled_time": t} for t in api.next_feeding_times(scheduler)]
