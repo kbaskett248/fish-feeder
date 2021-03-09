@@ -1,12 +1,9 @@
 [tool.poetry]
 name = "fish-feeder"
-version = "0.1.2"
+version = "0.1.3"
 description = ""
 authors = ["Kenny Baskett <kbaskett248@gmail.com>"]
-include = [
-    "static",
-    "templates"
-]
+include = ["static", "templates"]
 
 [tool.poetry.dependencies]
 python = "^3.6"
