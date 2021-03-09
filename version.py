@@ -29,6 +29,8 @@ def write_package_version(init_path, name: str, version: str):
     for line in fileinput.input(init_path, inplace=True):
         if line.startswith("__version__") and line[11:].strip().startswith("="):
             print(f'__version__ = "{version}"')
+        else:
+            print(line)
 
 
 def main(*args):
