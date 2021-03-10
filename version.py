@@ -30,7 +30,7 @@ def write_package_version(init_path, name: str, version: str):
         if line.startswith("__version__") and line[11:].strip().startswith("="):
             print(f'__version__ = "{version}"')
         else:
-            print(line)
+            print(line.replace("\n", ""))
 
 
 def main(*args):
