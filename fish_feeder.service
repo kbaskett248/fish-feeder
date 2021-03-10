@@ -7,6 +7,12 @@ User=pi
 Group=users
 WorkingDirectory=/home/pi/
 ExecStart=fish-feeder
+Environment="MOTOR_PIN_1=17"
+Environment="MOTOR_PIN_2=27"
+Environment="MOTOR_PIN_3=22"
+Environment="MOTOR_PIN_4=23"
+Environment="LED_PIN=18"
+Environment="DB_PATH=/usr/local/share/FishFeeder/fish-feeder.db"
 
 [Install]
 WantedBy=multi-user.target
