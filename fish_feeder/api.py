@@ -108,10 +108,14 @@ class DeviceAPI(API):
         self.device = Device(pin_spec)
 
     async def _feed_fish(self, db: Database, feeding):
-        tasks = (self.device.pulse_led(), self.device.turn_motor(db.get_feed_angle()))
+        tasks = (self.device.pulse_led(), self.turn_and_reverse(db.get_feed_angle()))
         await asyncio.gather(*tasks)
         logger.info("I fed the fish by rotating {}", db.get_feed_angle())
         super()._feed_fish(db, feeding)
+
+    async def turn_and_reverse(self, feed_angle: float):
+        await self.device.turn_motor(30 + feed_angle)
+        await self.device.turn_motor(-feed_angle)
 
 
 @lru_cache()
