@@ -21,7 +21,7 @@ python-versions = "*"
 name = "appdirs"
 version = "1.4.4"
 description = "A small Python module for determining appropriate platform-specific dirs, e.g. a \"user data dir\"."
-category = "main"
+category = "dev"
 optional = false
 python-versions = "*"
 
@@ -560,7 +560,7 @@ testing = ["pytest (>=3.5,!=3.7.3)", "pytest-checkdocs (>=1.2.3)", "pytest-flake
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.6"
-content-hash = "02fb8d288e47acd895a009095e549687bab58fc710b1cef1be9c76e93a67fbb3"
+content-hash = "bef5ea6ac0007ee6866a4635d96b25f80e98b27a6afe96aeef0d11020f6b1a0f"
 
 [metadata.files]
 aiocontextvars = [
