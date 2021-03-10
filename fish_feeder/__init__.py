@@ -1,4 +1,4 @@
-__version__ = "0.1.6"
+__version__ = "0.1.7"
 
 import typer
 
@@ -17,7 +17,7 @@ def run_server(
     if dev:
         uvicorn.run("fish_feeder.web_app:app", reload=True)
     else:
-        uvicorn.run("fish_feeder.web_app:app", host="0.0.0.0", port=80)
+        uvicorn.run("fish_feeder.web_app:app", host="0.0.0.0")
 
 
 def run():
