@@ -1,0 +1,12 @@
+[Unit]
+Description=Fish Feeder Web and Scheduling service
+After=network.target
+
+[Service]
+User=pi
+Group=users
+WorkingDirectory=/home/pi/
+ExecStart=fish-feeder
+
+[Install]
+WantedBy=multi-user.target
