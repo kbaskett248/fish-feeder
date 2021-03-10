@@ -18,6 +18,7 @@ python-multipart = "^0.0.5"
 typer = {extras = ["all"], version = "^0.3.2"}
 APScheduler = {extras = ["asyncio", "sqlalchemy"], version = "^3.7.0"}
 loguru = "^0.5.3"
+appdirs = "^1.4.4"
 
 [tool.poetry.dev-dependencies]
 pytest = "^5.2"
