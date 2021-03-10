@@ -13,6 +13,7 @@ from pydantic import BaseModel
 from . import api as api_
 from . import database, scheduler
 from .settings import Settings, get_settings
+from . import __version__ as PACKAGE_VERSION
 
 API_VERSION = "0.1.0"
 
@@ -23,6 +24,8 @@ TEMPLATE_PATH = BASEDIR / "templates"
 app = FastAPI(title="Fish Feeder 5000", version=API_VERSION)
 app.mount("/static", StaticFiles(directory=STATIC_PATH), name="static")
 templates = Jinja2Templates(directory=TEMPLATE_PATH)
+
+logger.info("Package version: {}", PACKAGE_VERSION)
 
 
 def get_api(settings: Settings = Depends(get_settings)) -> api_.API:
