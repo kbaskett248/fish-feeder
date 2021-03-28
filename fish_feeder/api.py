@@ -1,3 +1,6 @@
+# Defines an API to interact with all the different pieces of the application.
+
+
 import asyncio
 import inspect
 from abc import ABC, abstractmethod
@@ -13,6 +16,11 @@ from .device import Device, PinSpec
 
 
 class Backgroundable(BaseModel):
+    """An object allowing you to add a task to run in the background.
+
+    The add_task method schedules the task to be run in the background.
+    """
+
     add_task: Callable[..., Any]
 
 
@@ -20,9 +28,28 @@ BackgroundTask = Union[Callable, Coroutine]
 
 
 class API(ABC):
+    """Base Class for the API.
+
+    The API integrates the Database, Schedule, and Device to perform functions.
+
+    Attributes:
+        feed_fish_callback (Callable): The callback to run when feeding the
+            fish
+
+    """
+
     feed_fish_callback: Callable
 
     def __init__(self, db_factory: Callable):
+        """Initialize the API.
+
+        Set the feed_fish_callback. It will grab an instance of the database
+            from db_factory and then call self.feed_fish.
+
+        Args:
+            db_factory (Callable): A callable that returns a Database instance
+        """
+
         def cb():
             db = db_factory()
             self.feed_fish(db)
@@ -32,6 +59,17 @@ class API(ABC):
     def background_task(
         self, task: BackgroundTask, *args, bg: Optional[Backgroundable] = None
     ):
+        """Run the specified task with the given args.
+
+        If a Backgroundable object is specified, then the task is added to run
+        in the Backgroundable object. Otherwise, the task is run in the current
+        process. If task is a coroutine, then the task is run as a coroutine.
+
+        Args:
+            task (BackgroundTask): A callable or coroutine to run
+            bg (Optional[Backgroundable], optional): If specified, a
+                Backgroundable object used to run the task. Defaults to None.
+        """
         if bg is None:
             res = task(*args)
             if inspect.isawaitable(res):
@@ -40,6 +78,19 @@ class API(ABC):
             bg.add_task(task, *args)
 
     def feed_fish(self, db: Database, bg: Optional[Backgroundable] = None) -> Feeding:
+        """Feed the fish.
+
+        Adds a Feeding log entry to the database. Then run self._feed_fish,
+        which does the actual work of feeding the fish.
+
+        Args:
+            db (Database): A database instance
+            bg (Optional[Backgroundable], optional): A Backgroundable instance.
+                Defaults to None.
+
+        Returns:
+            Feeding: A Feeding log object
+        """
         feeding = db.add_feeding(datetime.now())
         logger.info("Requesting feeding")
         self.background_task(self._feed_fish, db, feeding, bg=bg)
@@ -47,25 +98,71 @@ class API(ABC):
 
     @abstractmethod
     def _feed_fish(self, db: Database, feeding):
+        """Do the actual work of feeding the object.
+
+        Subclasses should implement this method to actually feed the fish, or
+        simulate feeding the fish.
+
+        Args:
+            db (Database): A Database instance
+            feeding ([type]): A Feeding object representing the feeding
+        """
         db.add_time_fed(feeding, datetime.now())
 
     def list_feedings(
         self, db: Database, limit: int = 20, date_limit: Optional[datetime] = None
     ) -> List[Feeding]:
+        """List the feedings that have been logged.
+
+        Args:
+            db (Database): A Database instance
+            limit (int, optional): The number of Feedings to return. Defaults
+                to 20.
+            date_limit (Optional[datetime], optional): The earliest datetime to
+                return. Defaults to None.
+
+        Returns:
+            List[Feeding]: A list of Feeding objects
+        """
         return db.list_feedings(limit, date_limit)
 
     def load_scheduled_feedings(self, db: Database, scheduler: Scheduler):
+        """Load feeding schedules from the Database into the Scheduler.
+
+        Args:
+            db (Database): A Database instance
+            scheduler (Scheduler): A Scheduler instance
+        """
         logger.info("Loading feeding schedules")
 
         for scheduled_feeding in db.list_schedules():
             scheduler.add_scheduled_feeding(scheduled_feeding, self.feed_fish_callback)
 
-    def next_feeding_times(self, scheduler: Scheduler) -> List[time]:
+    def next_feeding_times(self, scheduler: Scheduler) -> List[datetime]:
+        """Return a list of the next scheduled feedings for each schedule.
+
+        Args:
+            scheduler (Scheduler): A Scheduler instance
+
+        Returns:
+            List[datetime]: A list of next scheduled feeding times for each
+                feeding defined in the Scheduler
+        """
         return [f[1] for f in scheduler.list_scheduled_feedings()]
 
     def list_schedules_with_runtimes(
         self, db: Database, scheduler: Scheduler
-    ) -> List[Tuple[Schedule, Optional[time]]]:
+    ) -> List[Tuple[Schedule, Optional[datetime]]]:
+        """List the Schedules and next scheduled runtime for each one.
+
+        Args:
+            db (Database): A Database instance
+            scheduler (Scheduler): A Scheduler instance
+
+        Returns:
+            List[Tuple[Schedule, Optional[datetime]]]: A List of Schedules,
+                each with its associated scheduled runtime
+        """
         schedules = sorted(db.list_schedules(), key=lambda s: s.time_)
         runtimes = dict(scheduler.list_scheduled_feedings())
         return [
@@ -74,7 +171,21 @@ class API(ABC):
 
     def add_scheduled_feeding(
         self, db: Database, scheduler: Scheduler, scheduled_time: time
-    ) -> Tuple[Schedule, time]:
+    ) -> Tuple[Schedule, datetime]:
+        """Add a daily schedule at the specified time.
+
+        Creates the Schedule in the Database. Then adds the Schedule to the
+        Scheduler.
+
+        Args:
+            db (Database): A Database instance
+            scheduler (Scheduler): A Scheduler instance
+            scheduled_time (time): The time of day for the schedule
+
+        Returns:
+            Tuple[Schedule, datetime]: The Schedule object and the next
+                scheduled feeding for the Schedule
+        """
         schedule = db.add_schedule(
             schedule_type=ScheduleMode.DAILY, time_=scheduled_time
         )
@@ -84,6 +195,21 @@ class API(ABC):
     def remove_scheduled_feeding(
         self, db: Database, scheduler: Scheduler, schedule_id: int
     ) -> Optional[Tuple[Schedule, Optional[time]]]:
+        """Remove the scheduled feeding.
+
+        Removes the schedule from the Database and the Scheduler.
+
+        Args:
+            db (Database): A Database instance
+            scheduler (Scheduler): A Scheduler instance
+            schedule_id (int): The unique ID associated with the schedule to
+                remove
+
+        Returns:
+            Optional[Tuple[Schedule, Optional[time]]]: If a Schedule with a
+                matching ID was found, return the Schedule object and the next
+                scheduled runtime.
+        """
         for schedule in db.list_schedules():
             if schedule.id == schedule_id:
                 t = scheduler.remove_scheduled_feeding(schedule)
@@ -94,6 +220,8 @@ class API(ABC):
 
 
 class SimulatedAPI(API):
+    """An API implementation independent of the fish feeder hardware."""
+
     async def _feed_fish(self, db: Database, feeding):
         await asyncio.sleep(2)
         logger.info("I simulated feeding the fish by rotating {}", db.get_feed_angle())
