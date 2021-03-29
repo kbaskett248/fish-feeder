@@ -194,7 +194,7 @@ class API(ABC):
 
     def remove_scheduled_feeding(
         self, db: Database, scheduler: Scheduler, schedule_id: int
-    ) -> Optional[Tuple[Schedule, Optional[time]]]:
+    ) -> Optional[Tuple[Schedule, Optional[datetime]]]:
         """Remove the scheduled feeding.
 
         Removes the schedule from the Database and the Scheduler.
@@ -206,7 +206,7 @@ class API(ABC):
                 remove
 
         Returns:
-            Optional[Tuple[Schedule, Optional[time]]]: If a Schedule with a
+            Optional[Tuple[Schedule, Optional[datetime]]]: If a Schedule with a
                 matching ID was found, return the Schedule object and the next
                 scheduled runtime.
         """
