@@ -220,27 +220,68 @@ class API(ABC):
 
 
 class SimulatedAPI(API):
-    """An API implementation independent of the fish feeder hardware."""
+    """An API implementation independent of the fish feeder hardware.
 
-    async def _feed_fish(self, db: Database, feeding):
+    Any hardware-specific functions can be simulated in this subclass so we can
+    test code without the raspberry pi hardware.
+
+    """
+
+    async def _feed_fish(self, db: Database, feeding: Feeding):
+        """Sleep for two seconds. Then log a message.
+
+        Args:
+            db (Database): A Database instance
+            feeding (Feeding): A Feeding log object tied to this feeding
+        """
         await asyncio.sleep(2)
         logger.info("I simulated feeding the fish by rotating {}", db.get_feed_angle())
         super()._feed_fish(db, feeding)
 
 
 class DeviceAPI(API):
+    """An API implementation tied to the fish feeder hardware.
+
+    Attributes:
+        device: A Device instance to control the hardware
+
+    """
+
     device: Device
 
     def __init__(self, db_factory: Callable, pin_spec: PinSpec) -> None:
+        """Initialize the API.
+
+        Build the feed fish callback. Initialize the Device instance for the
+        API.
+
+        Args:
+            db_factory (Callable): A callable that returns a Database instance
+            pin_spec (PinSpec): An object defining the pin numbers to use for
+                the device
+        """
         super().__init__(db_factory)
         self.device = Device(pin_spec)
 
     async def _feed_fish(self, db: Database, feeding):
+        """Activate the fish feeder.
+
+        Args:
+            db (Database): A Database instance
+            feeding ([type]): A Feeding log instance
+        """
         tasks = (self.device.pulse_led(), self.turn_and_reverse(db.get_feed_angle()))
         await asyncio.gather(*tasks)
         super()._feed_fish(db, feeding)
 
     async def turn_and_reverse(self, feed_angle: float):
+        """Turn the motor, then reverse the motor.
+
+        This is an attempt to prevent excess food from falling into the feeder.
+
+        Args:
+            feed_angle (float): Angle to turn the motor
+        """
         await self.device.turn_motor(30 + feed_angle)
         await self.device.turn_motor(-30)
         logger.info(
@@ -254,6 +295,22 @@ def get_api(
     simulate: bool = False,
     pin_spec: Optional[PinSpec] = None,
 ) -> API:
+    """Return an API instance.
+
+    This will return either the SimulatedAPI or the DeviceAPI. The result is
+    cached so the same instance is returned for subsequent calls.
+
+    Args:
+        db_factory (Callable): A callable that will return a Database instance
+        simulate (bool, optional): IF True, a SimulatedAPI instance is
+            returned. Otherwise a DeviceAPI instance is returned. Defaults to
+            False.
+        pin_spec (Optional[PinSpec], optional): An object that defines the pins
+            used to control the individual components. Defaults to None.
+
+    Returns:
+        API: An API instance
+    """
     if simulate:
         return SimulatedAPI(db_factory)
     else:
