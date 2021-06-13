@@ -270,23 +270,9 @@ class DeviceAPI(API):
             db (Database): A Database instance
             feeding ([type]): A Feeding log instance
         """
-        tasks = (self.device.pulse_led(), self.turn_and_reverse(db.get_feed_angle()))
+        tasks = (self.device.pulse_led(), self.device.turn_motor(db.get_feed_angle()))
         await asyncio.gather(*tasks)
         super()._feed_fish(db, feeding)
-
-    async def turn_and_reverse(self, feed_angle: float):
-        """Turn the motor, then reverse the motor.
-
-        This is an attempt to prevent excess food from falling into the feeder.
-
-        Args:
-            feed_angle (float): Angle to turn the motor
-        """
-        await self.device.turn_motor(30 + feed_angle)
-        await self.device.turn_motor(-30)
-        logger.info(
-            "I fed the fish by rotating {}, then reversing {}", 30 + feed_angle, -30
-        )
 
 
 @lru_cache()
